@@ -4,20 +4,23 @@ The product requirements and boundaries are recorded in [PROJECT_CONTEXT.md](PRO
 Each stage should leave a buildable application. Keep changes small, use MVVM,
 and avoid adding dependencies before they are needed.
 
-Only the initial scaffold and documentation are delivered now. All functionality
-below remains planned, including the models in Stage 1.
+Stage 1 is delivered: the scaffold, domain models, contract documentation, and
+one preliminary synthetic JSON contract example. Import/validation, analysis,
+application UI, persistence, and the other stages below remain planned.
 
 ## Stage 1 - project structure and models
 
 - Establish FPVTrainingAssistant.sln and the .NET 10 WPF project.
 - Separate Models, Services, Data, ViewModels, Views, and TestSessions.
 - Add the context, plan, and Visual Studio/.NET ignore rules.
-- In the next development step, define the required conceptual classes and
+- Define the required conceptual classes and
   relationships with nullable reference types and no simulator dependencies.
 - Define model ownership and distinguish simulator score from calculated score.
 
-Acceptance: the solution builds; the eventual models cover the conceptual model
-without business logic in views. Current delivery covers the scaffold only.
+Acceptance: the solution builds; the nine domain/data models cover the conceptual
+model without WPF dependencies or business logic in views. SessionAnalyzer remains
+planned for Stage 3. Contract decisions are documented in SESSION_CONTRACT.md;
+the preliminary sample does not implement import or claim simulator export support.
 
 ## Stage 2 - JSON contract/import/validation
 

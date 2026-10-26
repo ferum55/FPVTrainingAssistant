@@ -55,11 +55,25 @@ history. Sessions contain:
 - Source simulator and success/result state.
 - Final score, telemetry samples, and session events.
 
+Contract 1.0 separates nullable SimulatorScore (source-owned, source scale) from
+nullable AssistantFinalScore (assistant-owned, 0..100). Never overwrite the
+simulator score. EvaluationResult also represents assistant scoring on 0..100.
+Sessions retain ProfileId and ProfileVersion used for evaluation. Duration is
+calculated from timestamps, not duplicated in serialized state, and cannot be
+negative. See [SESSION_CONTRACT.md](SESSION_CONTRACT.md) for the contract.
+
 ### Telemetry
 
 Each sample supports timestamp/elapsed time, X/Y/Z position, speed, altitude,
 pitch, roll, yaw, and battery percentage or other available battery data.
 Control-link quality and video-link quality are optional.
+
+Normalized contract units are meters for position/altitude, meters per second for
+speed, degrees for angles, percentages 0..100 when available, and elapsed seconds
+from session start for telemetry/events. Absolute timestamps are UTC ISO 8601.
+Use a local Cartesian frame with X/Y horizontal and Z up. The assistant receives
+meters, not Unreal Engine centimeters; a future adapter/exporter must perform
+any conversion before supplying data.
 
 Raw speed, altitude, pitch, and roll are supplementary metrics. They are not
 universal standalone quality indicators; use them for scoring only when a
@@ -88,6 +102,16 @@ and configurable green, yellow, and red zones. Compare recorded positions with
 that route. Report the percentage of samples/time in each zone, maximum deviation,
 and average deviation. Keep the calculation understandable and configurable.
 
+For the initial prototype, use the nearest segment of the ordered reference-point
+polyline in the X/Y plane, with perpendicular/endpoint distance. Interpolate green
+and yellow radii between that segment's endpoints at the closest position.
+Radii satisfy GreenRadiusM >= 0 and YellowRadiusM >= GreenRadiusM. Classify
+distance <= green as Green, green < distance <= yellow as Yellow, and distance
+> yellow as Red. Z remains available for telemetry/replay but is excluded from
+this route distance. Zone percentages and average deviation are time-weighted;
+maximum deviation is the maximum observed distance. These are future analysis
+rules, not calculations implemented in Stage 1.
+
 ### Trajectory and replay
 
 Display the recorded flight path, reference route/checkpoints, and distinct route
@@ -101,6 +125,11 @@ Each configurable criterion supports ID, name, description, weight,
 threshold/configuration, rule type, and enabled state. Calculate partial criterion
 scores and a final session score. Retain measured values, score, and an explanation
 for each result so the instructor can understand why the score was produced.
+
+Stored weights need not sum to 1. Future scoring normalizes enabled positive
+weights as criterion.Weight / sum(enabled positive criterion weights). If all
+criteria are disabled or total enabled weight <= 0, analysis must fail with a
+clear configuration error. No scoring is implemented in the domain models.
 
 ### Recommendations
 
@@ -119,6 +148,13 @@ detected mistakes, important events, and recommendations.
 Persist sessions locally in SQLite. The instructor must be able to list sessions
 for an operator, reopen a previous session, compare scores, and view progress over
 time. Provide UI to inspect and edit exercise profiles and evaluation settings.
+
+Profile edits do not automatically recalculate historical EvaluationResult
+records. Retain the profile version/configuration used for evaluation; a future
+explicit reanalysis operation may generate new results. SessionId is globally
+unique in the assistant database. Future imports reject duplicates by default,
+without silently overwriting historical sessions. An explicit replace/reimport
+operation may be considered separately.
 
 ## Conceptual model
 
@@ -198,21 +234,20 @@ claims defensible through clear boundaries, validation, configurable rules,
 local data safety, explainable results, and focused automated tests. Compatibility
 and simulator independence are also explicit design goals.
 
-## Decisions to resolve during implementation
+## Contract decisions and remaining details
 
-- Define a versioned JSON contract, units, coordinate axes, angle conventions,
-  timestamp/time-zone rules, and required versus optional fields before import.
-- Distinguish any simulator-provided score from the assistant's calculated final
-  score; define score range, weight normalization, and disabled-criterion behavior.
-- Define route interpolation, 2D/3D distance, zone thresholds/boundaries, and sample
-  versus time weighting, especially for unevenly spaced telemetry.
-- Specify event payloads, checkpoint/target identity, target results/damage zones,
-  and behavior for unknown event types.
-- Decide duplicate-session handling and how profile edits affect historical
-  evaluations so comparisons remain understandable and reproducible.
+[SESSION_CONTRACT.md](SESSION_CONTRACT.md) defines contract version 1.0, camelCase
+JSON fields, required/optional data, normalized units, UTC timestamps, separate
+score ownership, route zones, weights, profile history, and duplicate handling.
+IDs are nonempty strings independent of database-generated row IDs. EventType
+and ExerciseType remain open strings, with constants for known names; unknown
+nonblank types remain representable, and unknown events are not rejected merely
+because they are unfamiliar. Relationships use IDs without serialization cycles.
 
-These are specification details to settle in the relevant stages, not implemented
-features or claims about simulator exports.
+Still resolve detailed angle/altitude conventions, event payload semantics,
+target results/damage zones, repeated telemetry timestamps, interval weighting,
+degenerate route segments, and minimum evidence for each exercise in the relevant
+later stages. These are not implemented features or claims about simulator exports.
 
 ## Initial delivery scope and repository rules
 
@@ -220,6 +255,13 @@ The first delivery creates only the .NET 10 WPF solution, initial folders, this
 context, the implementation plan, and a Visual Studio/.NET .gitignore, then builds
 the solution. Models, import, analysis, persistence, configuration, replay, sample
 session contents, and automated tests belong to later stages.
+
+The follow-up Stage 1 delivery adds the nine plain domain/data classes, known
+event/exercise name constants, SESSION_CONTRACT.md, and a preliminary synthetic
+contract example in TestSessions. It does not add SessionAnalyzer, an importer,
+full contract validation, SQLite, analysis algorithms, UI functionality, replay,
+history, or configuration UI. The full laboratory fixtures and automated test
+suite remain planned for later stages.
 
 Repository: https://github.com/ferum55/FPVTrainingAssistant.git
 

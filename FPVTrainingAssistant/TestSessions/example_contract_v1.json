@@ -1,0 +1,51 @@
+{
+  "contractVersion": "1.0",
+  "sessionId": "synthetic-session-001",
+  "operatorId": "synthetic-operator-001",
+  "profileId": "synthetic-obstacle-course",
+  "profileVersion": 1,
+  "exerciseType": "ObstacleCourse",
+  "startedAtUtc": "2026-10-26T10:00:00Z",
+  "endedAtUtc": "2026-10-26T10:00:10Z",
+  "sourceSimulator": "SyntheticContractExample",
+  "success": true,
+  "simulatorScore": 750.0,
+  "assistantFinalScore": null,
+  "telemetry": [
+    {
+      "timeSec": 0.0, "x": 0.0, "y": 0.0, "z": 2.0,
+      "speedMps": 0.0, "altitudeM": 2.0,
+      "pitchDeg": 0.0, "rollDeg": 0.0, "yawDeg": 0.0,
+      "batteryPercent": 100.0,
+      "controlLinkQualityPercent": 100.0,
+      "videoLinkQualityPercent": 98.0
+    },
+    {
+      "timeSec": 4.0, "x": 8.0, "y": 1.0, "z": 2.5,
+      "speedMps": 2.5, "altitudeM": 2.5,
+      "pitchDeg": -5.0, "rollDeg": 3.0, "yawDeg": 10.0,
+      "batteryPercent": 98.0
+    },
+    {
+      "timeSec": 10.0, "x": 18.0, "y": 0.0, "z": 2.0,
+      "speedMps": 0.0, "altitudeM": 2.0,
+      "pitchDeg": 0.0, "rollDeg": 0.0, "yawDeg": 0.0,
+      "batteryPercent": 95.0
+    }
+  ],
+  "events": [
+    {
+      "eventId": "synthetic-event-001", "timeSec": 4.0,
+      "eventType": "CheckpointPassed", "entityId": "checkpoint-01"
+    },
+    {
+      "eventId": "synthetic-event-002", "timeSec": 6.0,
+      "eventType": "Collision", "entityId": "obstacle-02",
+      "value": "minor", "metadata": { "note": "Synthetic demonstration event" }
+    },
+    {
+      "eventId": "synthetic-event-003", "timeSec": 10.0,
+      "eventType": "CheckpointPassed", "entityId": "checkpoint-02"
+    }
+  ]
+}
