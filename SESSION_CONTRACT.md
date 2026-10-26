@@ -3,11 +3,15 @@
 ## Scope and representation
 
 The root JSON object represents one TrainingSession, not a simulator-specific
-envelope. This is a preliminary contract definition; no file importer, complete
-contract validator, analyzer, or persistence is implemented in Stage 1.
+envelope. Stage 2 implements JSON file import and validation in the service layer.
+Analysis, scoring, persistence, and application UI remain outside this stage.
 
-JSON property names use camelCase; C# properties use PascalCase. Future
-System.Text.Json serialization must explicitly use JsonNamingPolicy.CamelCase.
+JSON property names use camelCase; C# properties use PascalCase. SessionJson.Options
+centralizes System.Text.Json configuration and is read-only. Import tolerates
+property-name casing and ignores unknown properties for compatible future additions.
+Generated JSON uses camelCase. Comments, trailing commas, numeric strings, malformed
+JSON, and duplicate object properties (ignoring property-name casing) are rejected.
+Metadata keys are case-sensitive and must be unique; metadata values are strings.
 IDs are nonempty, non-whitespace strings, independent of SQLite row IDs. IDs
 are preserved as supplied, compared ordinally, and must not require personal data.
 All numeric data must be finite JSON numbers. Do not use NaN or infinity.
@@ -15,9 +19,11 @@ All numeric data must be finite JSON numbers. Do not use NaN or infinity.
 The models are sealed data classes with init properties (and mutable List contents).
 They provide required-member declarations, nonblank identity checks, assistant
 score bounds, nonnull list initialization, and the reference-radius invariant.
-These basic construction checks are not a complete contract validator: UTC,
-cross-field consistency, time ordering, and other contract rules below must be
-checked by the future Stage 2 importer before analysis.
+SessionJsonStructureValidator checks required JSON fields and types before
+deserialization, so defaults cannot hide missing input and guarded model setters
+cannot turn ordinary bad data into technical failures. SessionValidator then
+checks the deserialized TrainingSession, accumulating semantic issues. The
+importer exposes a session only after both validation phases succeed.
 
 ## Units and coordinates
 
@@ -26,23 +32,28 @@ checked by the future Stage 2 importer before analysis.
 | X, Y, Z, reference points | Meters in one shared local Cartesian frame. X and Y are horizontal; Z points up. |
 | AltitudeM | Meters relative to the source's declared local altitude datum. |
 | SpeedMps | Meters per second; nonnegative speed magnitude. |
-| PitchDeg, RollDeg, YawDeg | Degrees. |
+| PitchDeg, RollDeg, YawDeg | Degrees, normalized after successful validation to [-180, 180). |
 | BatteryPercent | Percentage 0..100 when available. |
 | ControlLinkQualityPercent, VideoLinkQualityPercent | Optional percentages 0..100. |
 | TimeSec | Nonnegative elapsed seconds from session start, for samples and events. |
-| StartedAtUtc, EndedAtUtc | UTC ISO 8601 strings ending in Z; C# DateTimeOffset. |
+| StartedAtUtc, EndedAtUtc | Explicit UTC ISO 8601 strings ending in Z or +00:00; C# DateTimeOffset. Producers should use Z. |
 
 The assistant contract is already normalized to meters. Unreal Engine centimeters
 are not native assistant units. A future exporter/adapter must convert simulator
 units and coordinates before producing this data. Use the same frame for a
-session and its profile. Positive rotation directions, angle wrapping, and the
-precise altitude datum still need agreement before adapters/replay are implemented.
+session and its profile. This is a local mission coordinate system, not geographic
+latitude/longitude. PitchDeg is positive nose-up; RollDeg is positive roll to the
+right. YawDeg = 0 points along +X, and positive yaw rotates from +X toward +Y.
+The importer wraps finite angles modulo 360 into [-180, 180), without imposing
+physical attitude limits. An adapter/exporter must convert source coordinates
+and angle conventions into these conventions; DroneDiploma is not modified.
+The precise altitude datum remains source-declared and must match the profile.
 
 ## TrainingSession root
 
 | JSON field | Type | Required/meaning |
 | --- | --- | --- |
-| contractVersion | string | Required; "1.0". The model defaults to 1.0 for new in-memory sessions; producers must write it explicitly. Future import must report unsupported versions clearly. |
+| contractVersion | string | Required; exactly "1.0". Missing input is rejected despite the model default; another value gives UnsupportedContractVersion. |
 | sessionId | string | Required; globally unique in the assistant database. |
 | operatorId | string | Required; internal operator identity, no personal information required. |
 | profileId | string | Required; identifies the exercise profile. |
@@ -55,16 +66,23 @@ precise altitude datum still need agreement before adapters/replay are implement
 | simulatorScore | number or null | Optional; source-owned score in the source's scale. |
 | assistantFinalScore | number or null | Optional; assistant-owned score 0..100, absent/null before analysis. |
 | telemetry | array | Required, nonnull; chronological telemetry samples. Empty samples may be represented in memory but are insufficient for trajectory analysis. |
-| events | array | Required, nonnull; chronological events. An empty array is allowed when no events occurred; exercise-specific sufficiency is checked later. |
+| events | array | Required, nonnull; may arrive out of order and are sorted after successful import. An empty array is allowed; exercise-specific warnings apply below. |
 
 Duration is calculated as EndedAtUtc - StartedAtUtc and is excluded from JSON with
 JsonIgnore. The model's Duration getter throws InvalidOperationException for
 reversed timestamps instead of returning a negative value or hiding invalid data
-by clamping. The future importer must detect this before accessing results.
+by clamping. The importer detects this before accessing Duration.
 
-Times must lie within [0, Duration.TotalSeconds]; samples/events must be
-chronological, and their IDs where present must be consistent. Exact policies
-for repeated telemetry times and minimum exercise evidence remain Stage 2 work.
+Times are finite seconds from session start and must be >= 0. End time must be
+>= start time. Telemetry must already be strictly increasing: out-of-order or
+duplicate timestamps are errors, not silently sorted. Events can share a timestamp
+and are stably sorted by TimeSec after validation, preserving input order for ties.
+
+The upper boundary permits only floating-point overshoot up to
+SessionValidator.TimeToleranceSeconds = 0.000001 seconds. Values greater than
+Duration.TotalSeconds + this tolerance are errors. Negative times are always
+invalid. Accepted values near the boundary are not clamped. Missing/offset-free
+timestamps, nonzero UTC offsets, null array items, and nonfinite values are errors.
 
 ### Score ownership
 
@@ -74,7 +92,10 @@ and EvaluationResult.Score use 0..100, with larger values meaning better results
 Null AssistantFinalScore means no assistant evaluation has been recorded.
 External producers should omit assistantFinalScore or supply null; a populated
 assistant score belongs to an assistant-produced record and must not be treated
-as a trusted external calculation by the future importer.
+as a trusted external calculation. Stage 2 accepts a finite supplied value in
+0..100, preserves it, and returns an ImportedAssistantScore warning. It performs
+no scoring and never substitutes it for SimulatorScore. SimulatorScore must be
+finite when supplied, but its source scale remains unrestricted.
 
 ## TelemetrySample
 
@@ -110,10 +131,66 @@ Known conventional event names (case-sensitive) are:
 - MissionCompleted
 
 EventType is an open string, not a closed enum. Unknown nonblank types remain
-representable and must not be rejected merely for being unfamiliar. Future
-analysis may preserve/display them without scoring them. Value/metadata payload
-semantics for each exercise, including target results and damage zones, still
-require definition before the corresponding analysis rules are implemented.
+representable and are not rejected merely for being unfamiliar. Generic structure,
+ID, time, and metadata validation still applies. Names are matched case-sensitively;
+future analysis may preserve/display unknown events without scoring them.
+
+| Event type | Minimum payload |
+| --- | --- |
+| CheckpointPassed, CheckpointMissed | Nonblank entityId identifying the checkpoint. |
+| TargetDetected, TargetHit | Nonblank entityId identifying the target. |
+| TargetDamageZone | Nonblank entityId and nonblank string metadata.damageZone. |
+| Collision | entityId optional; metadata may provide additional details. |
+| FalseTargetDetection | entityId optional because no target may be present. |
+| ObjectiveCompleted, Crash | entityId optional. |
+| MissionCompleted | entityId optional; metadata may contain result details. |
+
+The damageZone metadata key is case-sensitive. Other metadata keys and unknown
+event types are retained. The importer does not evaluate damage effectiveness,
+target results, or mission success; those belong to future analysis rules.
+
+## Validation and import results
+
+SessionImportService.ImportAsync(filePath, cancellationToken) asynchronously opens
+and parses a JSON file, validates its structure, deserializes TrainingSession
+using SessionJson.Options, and calls SessionValidator. On success it normalizes
+angles and sorts events. It never invokes analysis, WPF, or SQLite.
+
+ValidationIssue contains Code, Path, Message, and Severity (Error or Warning).
+Paths use canonical camelCase names such as $.telemetry[1].batteryPercent, even
+when input casing differs. ValidationResult snapshots Issues, Errors, and Warnings;
+IsValid means no errors. Independent issues accumulate within each validation
+phase. Structural errors stop deserialization; semantic validation starts only
+when the structure is valid.
+
+SessionImportResult contains Session, Validation, IsSuccess, and TechnicalError.
+Failed attempts expose no session. IsSuccess requires a validated session, no
+errors, and no technical failure. Warnings alone do not prevent success. Ordinary
+bad input, malformed JSON, empty/invalid paths, and missing files return validation
+issues without TechnicalError. Access failures, IO failures, and unexpected
+technical/deserialization failures use TechnicalError. A technical failure may
+have no validation issues: consumers must use IsSuccess, not Validation.IsValid
+alone. Requested cancellation propagates OperationCanceledException.
+
+Validation covers IDs/text, positive profileVersion, exact contract version,
+explicit UTC, duration/order/range of times, finite numeric data, nonnegative
+speed, assistant scores and optional percentages in 0..100, unique event IDs,
+nonnull collections/items, string metadata, and required event payloads. It does
+not impose arbitrary maximum speed, altitude, position, or attitude limits.
+
+Exercise semantics are checked separately from generic data:
+
+- ObstacleCourse requires at least two telemetry samples and ProfileId. No
+  checkpoint events gives NoCheckpointEvents warning. Collisions and missed
+  checkpoints are never mandatory.
+- TargetMission requires ProfileId. No TargetDetected, FalseTargetDetection,
+  TargetHit, TargetDamageZone, or MissionCompleted gives NoTargetEvents warning,
+  allowing failed/aborted missions without successful interactions.
+- An unfamiliar nonblank ExerciseType gives UnknownExerciseType warning and is
+  otherwise accepted if the generic contract is valid.
+
+Profile lookup, database-level duplicate SessionId detection, evaluation, and
+recommendation generation remain later-stage responsibilities.
 
 ## Related domain records
 
@@ -165,10 +242,15 @@ distance > yellow radius                 -> Red
 ```
 
 Zone percentages and average deviation must be time-weighted so uneven sampling
-does not distort results. Maximum deviation is the maximum observed route
-distance. Exact interval weighting, equal-distance segment ties, degenerate
-segments, and insufficient route/sample data must be specified with the analyzer.
-No route calculations are implemented in this stage.
+does not distort results. For each consecutive pair i, i+1, the interval is
+TimeSec[i+1] - TimeSec[i]. Use the midpoint between their positions for the
+interval's zone classification and assign the entire interval duration to that
+zone. The last telemetry sample has no standalone duration after it; do not
+extrapolate before the first or after the last recorded sample. Average deviation
+uses elapsed-time weighting. Maximum deviation is the maximum observed route
+distance. Equal-distance segment ties, degenerate segments, and insufficient
+route coverage still need decisions with the analyzer. No route calculations
+are implemented in this stage.
 
 ## Criterion weights (future scoring policy only)
 
@@ -205,6 +287,12 @@ and does not imply that any current simulator exports these fields. The same
 small fixture is stored in
 [example_contract_v1.json](FPVTrainingAssistant/TestSessions/example_contract_v1.json).
 It is not a complete laboratory analysis fixture or an embedded exercise profile.
+
+Additional deterministic synthetic fixtures are in FPVTrainingAssistant/TestSessions:
+valid_obstacle_course.json, valid_target_mission.json, valid_unknown_event.json,
+invalid_missing_session_id.json, invalid_bad_telemetry_time.json, and
+invalid_out_of_range_percentage.json. They exercise import/validation only and
+make no claims about exports from DroneDiploma.
 
 ```json
 {

@@ -75,6 +75,11 @@ Use a local Cartesian frame with X/Y horizontal and Z up. The assistant receives
 meters, not Unreal Engine centimeters; a future adapter/exporter must perform
 any conversion before supplying data.
 
+The local mission frame does not imply latitude/longitude. Positive pitch is
+nose-up, positive roll is rightward, and yaw 0 points along +X with positive yaw
+toward +Y. Successful import normalizes finite angles into [-180, 180). Exporters
+are responsible for translating source conventions; DroneDiploma is not modified.
+
 Raw speed, altitude, pitch, and roll are supplementary metrics. They are not
 universal standalone quality indicators; use them for scoring only when a
 specific exercise criterion requires them.
@@ -111,6 +116,11 @@ distance <= green as Green, green < distance <= yellow as Yellow, and distance
 this route distance. Zone percentages and average deviation are time-weighted;
 maximum deviation is the maximum observed distance. These are future analysis
 rules, not calculations implemented in Stage 1.
+
+The future time-weighting policy assigns each consecutive sample interval to the
+zone of the midpoint between its positions. The final sample has no standalone
+duration. Average deviation uses elapsed-time weighting. Stage 2 documents this
+policy but does not implement route calculations.
 
 ### Trajectory and replay
 
@@ -244,10 +254,16 @@ and ExerciseType remain open strings, with constants for known names; unknown
 nonblank types remain representable, and unknown events are not rejected merely
 because they are unfamiliar. Relationships use IDs without serialization cycles.
 
-Still resolve detailed angle/altitude conventions, event payload semantics,
-target results/damage zones, repeated telemetry timestamps, interval weighting,
-degenerate route segments, and minimum evidence for each exercise in the relevant
-later stages. These are not implemented features or claims about simulator exports.
+Stage 2 resolves angles, explicit UTC timestamps (Z or +00:00), strictly increasing
+telemetry times, stable sorting of events including simultaneous events, a
+0.000001-second upper-duration tolerance, and known-event minimum payloads.
+TargetDamageZone requires entityId and nonblank metadata.damageZone. Unknown
+events remain valid. Unknown exercise types and missing checkpoint/target evidence
+produce warnings; ObstacleCourse requires at least two telemetry samples.
+
+Still resolve the precise source altitude datum, analysis of target results/damage
+effectiveness, degenerate route segments/ties, and incomplete route coverage in
+later stages. These are not claims about simulator exports.
 
 ## Initial delivery scope and repository rules
 
@@ -262,6 +278,15 @@ contract example in TestSessions. It does not add SessionAnalyzer, an importer,
 full contract validation, SQLite, analysis algorithms, UI functionality, replay,
 history, or configuration UI. The full laboratory fixtures and automated test
 suite remain planned for later stages.
+
+Stage 2 adds asynchronous JSON import, centralized strict/case-tolerant serialization,
+structural and semantic validation with errors/warnings, synthetic fixtures, and
+xUnit tests. Failed imports expose no session; malformed input is a validation
+failure, while IO/access failures use TechnicalError. The existing domain models
+remain unchanged. The main project targets net10.0-windows for WPF and net10.0
+as a library excluding UI files, allowing net10.0 tests to reference it directly.
+Run the desktop scaffold with `dotnet run --project FPVTrainingAssistant --framework
+net10.0-windows`. Scoring, analysis, persistence, and application UI remain planned.
 
 Repository: https://github.com/ferum55/FPVTrainingAssistant.git
 

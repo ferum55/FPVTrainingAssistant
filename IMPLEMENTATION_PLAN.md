@@ -4,8 +4,8 @@ The product requirements and boundaries are recorded in [PROJECT_CONTEXT.md](PRO
 Each stage should leave a buildable application. Keep changes small, use MVVM,
 and avoid adding dependencies before they are needed.
 
-Stage 1 is delivered: the scaffold, domain models, contract documentation, and
-one preliminary synthetic JSON contract example. Import/validation, analysis,
+Stages 1 and 2 are delivered: the scaffold, domain models, contract documentation,
+JSON import/validation, synthetic examples, and focused xUnit tests. Analysis,
 application UI, persistence, and the other stages below remain planned.
 
 ## Stage 1 - project structure and models
@@ -34,6 +34,12 @@ the preliminary sample does not implement import or claim simulator export suppo
 
 Acceptance: valid files yield validated sessions; invalid files return clear
 errors without crashes or analysis execution.
+
+Delivered with structural checks before deserialization, accumulated semantic
+issues, documented angle/time/event conventions, stable event ordering, and
+portable test fixtures. Database duplicate enforcement remains Stage 6; no
+analysis or UI is invoked. Verification: `dotnet build FPVTrainingAssistant.sln`
+and `dotnet test FPVTrainingAssistant.sln`.
 
 ## Stage 3 - analysis engine
 
