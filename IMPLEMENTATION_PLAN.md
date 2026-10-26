@@ -4,9 +4,9 @@ The product requirements and boundaries are recorded in [PROJECT_CONTEXT.md](PRO
 Each stage should leave a buildable application. Keep changes small, use MVVM,
 and avoid adding dependencies before they are needed.
 
-Stages 1 and 2 are delivered: the scaffold, domain models, contract documentation,
-JSON import/validation, synthetic examples, and focused xUnit tests. Analysis,
-application UI, persistence, and the other stages below remain planned.
+Stages 1 through 3 are delivered: the scaffold, domain models, contracts,
+JSON import/validation, deterministic analysis, synthetic examples, and focused
+xUnit tests. Application UI, persistence, and later stages remain planned.
 
 ## Stage 1 - project structure and models
 
@@ -18,8 +18,8 @@ application UI, persistence, and the other stages below remain planned.
 - Define model ownership and distinguish simulator score from calculated score.
 
 Acceptance: the solution builds; the nine domain/data models cover the conceptual
-model without WPF dependencies or business logic in views. SessionAnalyzer remains
-planned for Stage 3. Contract decisions are documented in SESSION_CONTRACT.md;
+model without WPF dependencies or business logic in views. SessionAnalyzer is
+implemented in Stage 3. Contract decisions are documented in SESSION_CONTRACT.md;
 the preliminary sample does not implement import or claim simulator export support.
 
 ## Stage 2 - JSON contract/import/validation
@@ -55,6 +55,13 @@ and `dotnet test FPVTrainingAssistant.sln`.
 
 Acceptance: known inputs produce understandable, deterministic results for both
 exercise types, including disabled criteria and boundary cases.
+
+Delivered with eight RuleTypes, isolated profile validation, interval-midpoint
+route metrics weighted by elapsed time, criterion explanations, stable result IDs,
+mistake evidence, deduplicated recommendations, and independent default profile
+factories. ANALYSIS_RULES.md records the exact formulas and limitations. Tests
+retain all Stage 2 coverage and add route, obstacle, target, configuration, and
+determinism checks. No WPF UI, persistence, or replay is added.
 
 ## Stage 4 - basic WPF UI
 

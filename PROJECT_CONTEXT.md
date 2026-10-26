@@ -114,13 +114,13 @@ Radii satisfy GreenRadiusM >= 0 and YellowRadiusM >= GreenRadiusM. Classify
 distance <= green as Green, green < distance <= yellow as Yellow, and distance
 > yellow as Red. Z remains available for telemetry/replay but is excluded from
 this route distance. Zone percentages and average deviation are time-weighted;
-maximum deviation is the maximum observed distance. These are future analysis
-rules, not calculations implemented in Stage 1.
+maximum deviation is the maximum evaluated midpoint distance. Stage 3 implements
+these rules in RouteAnalyzer; Stage 1 did not include route calculations.
 
-The future time-weighting policy assigns each consecutive sample interval to the
+The time-weighting policy assigns each consecutive sample interval to the
 zone of the midpoint between its positions. The final sample has no standalone
 duration. Average deviation uses elapsed-time weighting. Stage 2 documents this
-policy but does not implement route calculations.
+policy; Stage 3 implements it without a visualization UI.
 
 ### Trajectory and replay
 
@@ -136,10 +136,12 @@ threshold/configuration, rule type, and enabled state. Calculate partial criteri
 scores and a final session score. Retain measured values, score, and an explanation
 for each result so the instructor can understand why the score was produced.
 
-Stored weights need not sum to 1. Future scoring normalizes enabled positive
+Stored weights need not sum to 1. Scoring normalizes enabled positive
 weights as criterion.Weight / sum(enabled positive criterion weights). If all
 criteria are disabled or total enabled weight <= 0, analysis must fail with a
-clear configuration error. No scoring is implemented in the domain models.
+clear configuration error. Stage 3 additionally rejects every enabled criterion
+whose weight is <= 0, even if other weights are positive. Disabled zero weights
+are allowed. No scoring is implemented in the domain models.
 
 ### Recommendations
 
@@ -261,9 +263,14 @@ TargetDamageZone requires entityId and nonblank metadata.damageZone. Unknown
 events remain valid. Unknown exercise types and missing checkpoint/target evidence
 produce warnings; ObstacleCourse requires at least two telemetry samples.
 
-Still resolve the precise source altitude datum, analysis of target results/damage
-effectiveness, degenerate route segments/ties, and incomplete route coverage in
-later stages. These are not claims about simulator exports.
+Stage 3 ignores zero-length route segments when other usable segments exist,
+rejects fully degenerate routes, and resolves exact distance ties by the first
+segment in SequenceNo order. The route maximum is the maximum interval-midpoint
+deviation. Missing coverage is not extrapolated or penalized implicitly.
+
+The precise source altitude datum and richer exercise-specific target results
+remain future integration details. Damage-zone scores are configurable training
+categories, not claims about real-world effectiveness or simulator exports.
 
 ## Initial delivery scope and repository rules
 
@@ -286,7 +293,19 @@ failure, while IO/access failures use TechnicalError. The existing domain models
 remain unchanged. The main project targets net10.0-windows for WPF and net10.0
 as a library excluding UI files, allowing net10.0 tests to reference it directly.
 Run the desktop scaffold with `dotnet run --project FPVTrainingAssistant --framework
-net10.0-windows`. Scoring, analysis, persistence, and application UI remain planned.
+net10.0-windows`. At the end of Stage 2, scoring and analysis were still planned.
+
+Stage 3 adds deterministic SessionAnalyzer, RouteAnalyzer, focused criterion
+evaluation, evidence-based mistakes and recommendations, and default in-memory
+profile factories. [ANALYSIS_RULES.md](ANALYSIS_RULES.md) defines the eight rules,
+formulas, weights, configuration errors, route geometry, and recommendation
+priorities (1 highest, 2 medium, 3 lower). The caller supplies a validated session
+and matching profile/version. New assistant scores are returned in
+SessionAnalysisResult.FinalScore; the input session and SimulatorScore remain
+unchanged. IsSuccessful reports analysis completion, independently of mission
+success. Generic ObstacleCourse defaults require caller-supplied course geometry
+before their enabled route criterion can be evaluated. UI, replay, persistence,
+and history remain planned; analysis adds no WPF or database dependencies.
 
 Repository: https://github.com/ferum55/FPVTrainingAssistant.git
 

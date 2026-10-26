@@ -133,7 +133,7 @@ Known conventional event names (case-sensitive) are:
 EventType is an open string, not a closed enum. Unknown nonblank types remain
 representable and are not rejected merely for being unfamiliar. Generic structure,
 ID, time, and metadata validation still applies. Names are matched case-sensitively;
-future analysis may preserve/display unknown events without scoring them.
+Stage 3 analysis ignores unknown events for scoring; the imported data retains them.
 
 | Event type | Minimum payload |
 | --- | --- |
@@ -147,7 +147,8 @@ future analysis may preserve/display unknown events without scoring them.
 
 The damageZone metadata key is case-sensitive. Other metadata keys and unknown
 event types are retained. The importer does not evaluate damage effectiveness,
-target results, or mission success; those belong to future analysis rules.
+target results, or mission success. Separate Stage 3 rules evaluate the explicit
+training categories and Success flag without changing import behavior.
 
 ## Validation and import results
 
@@ -189,8 +190,9 @@ Exercise semantics are checked separately from generic data:
 - An unfamiliar nonblank ExerciseType gives UnknownExerciseType warning and is
   otherwise accepted if the generic contract is valid.
 
-Profile lookup, database-level duplicate SessionId detection, evaluation, and
-recommendation generation remain later-stage responsibilities.
+Import does not perform profile lookup or analysis. Stage 3 SessionAnalyzer takes
+a caller-supplied profile and validated session for evaluation/recommendations.
+Database-level duplicate SessionId detection remains a later-stage responsibility.
 
 ## Related domain records
 
@@ -205,14 +207,14 @@ Names below use C# casing; camelCase applies if serialized as JSON later.
 | ReferencePoint | SequenceNo, X, Y, Z, PointType, GreenRadiusM, YellowRadiusM | Radii are constructor arguments and read-only thereafter; sequence numbers order the route. |
 | EvaluationCriterion | CriterionId, Name, Description, Weight, RuleType | IsEnabled defaults to true; Threshold and string-to-number Parameters are nullable. |
 | EvaluationResult | ResultId, SessionId, CriterionId, Score, nonblank Explanation | MeasuredValue may be null. Represents assistant evaluation only. |
-| Recommendation | RecommendationId, SessionId, Category, Text, nonblank Evidence | Priority is an integer defaulting to 0. Its ranking convention remains to be defined with recommendation generation. |
+| Recommendation | RecommendationId, SessionId, Category, Text, nonblank Evidence | Generated priority uses 1 highest, 2 medium, 3 lower. The domain default 0 is not emitted by the generator. |
 
 Required text fields are nonblank. ReferencePoint.PointType and criterion.RuleType
 are open strings whose supported conventions will be defined with their services.
 Recommendation.Evidence must identify which actual result/event caused the advice;
-no recommendation generation is implemented now.
+Stage 3 implements generation separately from import; see ANALYSIS_RULES.md.
 
-## Route zones (future analysis policy only)
+## Route zones
 
 Order reference points by SequenceNo to form a polyline. Route distance in the
 first prototype uses the 2D X/Y plane. Z remains available for telemetry and
@@ -247,12 +249,13 @@ TimeSec[i+1] - TimeSec[i]. Use the midpoint between their positions for the
 interval's zone classification and assign the entire interval duration to that
 zone. The last telemetry sample has no standalone duration after it; do not
 extrapolate before the first or after the last recorded sample. Average deviation
-uses elapsed-time weighting. Maximum deviation is the maximum observed route
-distance. Equal-distance segment ties, degenerate segments, and insufficient
-route coverage still need decisions with the analyzer. No route calculations
-are implemented in this stage.
+uses elapsed-time weighting. Maximum deviation is the maximum evaluated midpoint
+distance. Stage 3 RouteAnalyzer ignores zero-length segments if other usable
+segments exist, rejects fully degenerate routes, requires unique SequenceNo
+values, and keeps the first ordered segment on exact distance ties. It does not
+extrapolate missing coverage. Import still performs no route calculations.
 
-## Criterion weights (future scoring policy only)
+## Criterion weights
 
 Stored weights need not sum to 1. Only enabled criteria with positive weights
 contribute to normalization:
@@ -261,10 +264,12 @@ contribute to normalization:
 normalizedWeight = criterion.Weight / sum(enabled positive criterion weights)
 ```
 
-A zero-weight criterion contributes nothing. Negative or nonfinite configured
-weights are invalid. If every criterion is disabled or the total enabled weight
-is <= 0, analysis must fail with a clear configuration error. No scoring or
-weight normalization is implemented in the models.
+A disabled zero-weight criterion contributes nothing. Stage 3 rejects any enabled
+weight <= 0, even if other enabled weights are positive. Negative or nonfinite
+stored weights are invalid. If every criterion is disabled or the total enabled
+weight is <= 0, analysis fails with AnalysisConfigurationException. No scoring or
+weight normalization is implemented in the models. ANALYSIS_RULES.md defines the
+service-level formulas; only the final assistant score is rounded to two decimals.
 
 ## Profile versions, history, and duplicates
 
