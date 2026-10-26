@@ -18,7 +18,8 @@ public sealed class SessionImportService : ISessionImportService
 
         try
         {
-            await using var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read,
+            var sourcePath = Path.GetFullPath(filePath);
+            await using var stream = new FileStream(sourcePath, FileMode.Open, FileAccess.Read, FileShare.Read,
                 bufferSize: 65536, FileOptions.Asynchronous | FileOptions.SequentialScan);
             using var document = await JsonDocument.ParseAsync(stream, new JsonDocumentOptions
             {
@@ -40,7 +41,7 @@ public sealed class SessionImportService : ISessionImportService
             var orderedEvents = session.Events.OrderBy(e => e.TimeSec).ToArray();
             session.Events.Clear();
             session.Events.AddRange(orderedEvents);
-            return new(session, validation);
+            return new(session, validation, SourceFilePath: sourcePath);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
@@ -87,7 +88,18 @@ public sealed class SessionImportService : ISessionImportService
                 YawDeg = NormalizeAngle(sample.YawDeg),
                 BatteryPercent = sample.BatteryPercent,
                 ControlLinkQualityPercent = sample.ControlLinkQualityPercent,
-                VideoLinkQualityPercent = sample.VideoLinkQualityPercent
+                VideoLinkQualityPercent = sample.VideoLinkQualityPercent,
+                VerticalSpeedMps = sample.VerticalSpeedMps,
+                CameraTiltDeg = sample.CameraTiltDeg is { } tilt ? NormalizeAngle(tilt) : null,
+                CameraFovDeg = sample.CameraFovDeg,
+                BatteryVoltageV = sample.BatteryVoltageV,
+                CellVoltageV = sample.CellVoltageV,
+                CurrentA = sample.CurrentA,
+                ConsumedMah = sample.ConsumedMah,
+                ControlRssiDbm = sample.ControlRssiDbm,
+                Failsafe = sample.Failsafe,
+                FlightMode = sample.FlightMode,
+                Armed = sample.Armed
             };
         }
     }

@@ -4,7 +4,7 @@ namespace FPVTrainingAssistant.Services;
 
 // Checks presence/types before deserialization so model defaults cannot hide missing
 // JSON fields and existing model guards cannot turn ordinary bad input into exceptions.
-internal static class SessionJsonStructureValidator
+internal static partial class SessionJsonStructureValidator
 {
     public static ValidationResult Validate(JsonElement root)
     {
@@ -64,10 +64,14 @@ internal static class SessionJsonStructureValidator
                 {
                     Required(values, name, JsonValueKind.Number, path, issues);
                 }
-                foreach (var name in new[] { "batteryPercent", "controlLinkQualityPercent", "videoLinkQualityPercent" })
+                foreach (var name in new[] { "batteryPercent", "controlLinkQualityPercent", "videoLinkQualityPercent",
+                    "verticalSpeedMps", "cameraTiltDeg", "cameraFovDeg", "batteryVoltageV", "cellVoltageV", "currentA", "consumedMah", "controlRssiDbm" })
                 {
                     Optional(values, name, JsonValueKind.Number, path, issues);
                 }
+                Optional(values, "failsafe", JsonValueKind.True, path, issues, allowBoolean: true);
+                Optional(values, "armed", JsonValueKind.True, path, issues, allowBoolean: true);
+                Optional(values, "flightMode", JsonValueKind.String, path, issues);
             }
         }
 
@@ -100,6 +104,7 @@ internal static class SessionJsonStructureValidator
             }
         }
 
+        ValidateReplayStructure(fields, issues);
         return new ValidationResult(issues);
     }
 

@@ -2,7 +2,7 @@ using FPVTrainingAssistant.Models;
 
 namespace FPVTrainingAssistant.Services;
 
-public sealed class SessionValidator
+public sealed partial class SessionValidator
 {
     public const double TimeToleranceSeconds = 0.000001;
 
@@ -19,9 +19,9 @@ public sealed class SessionValidator
         {
             issues.Add(new("RequiredValue", "$.contractVersion", "Contract version is required."));
         }
-        else if (session.ContractVersion != SessionJson.SupportedContractVersion)
+        else if (!SessionJson.IsSupportedVersion(session.ContractVersion))
         {
-            issues.Add(new("UnsupportedContractVersion", "$.contractVersion", "Only contract version 1.0 is supported."));
+            issues.Add(new("UnsupportedContractVersion", "$.contractVersion", "Supported contract versions are 1.0 and 1.1."));
         }
 
         RequiredText(session.SessionId, "$.sessionId", issues);
@@ -52,6 +52,7 @@ public sealed class SessionValidator
 
         ValidateTelemetry(session.Telemetry, duration, issues);
         ValidateEvents(session.Events, duration, issues);
+        ValidateReplay(session.Replay, duration, issues);
         ValidateExercise(session, issues);
         return new ValidationResult(issues);
     }
@@ -99,6 +100,7 @@ public sealed class SessionValidator
             if (sample.BatteryPercent is { } battery) CheckPercentage(battery, path + ".batteryPercent", issues);
             if (sample.ControlLinkQualityPercent is { } control) CheckPercentage(control, path + ".controlLinkQualityPercent", issues);
             if (sample.VideoLinkQualityPercent is { } video) CheckPercentage(video, path + ".videoLinkQualityPercent", issues);
+            ValidateExtendedTelemetry(sample, path, issues);
         }
     }
 

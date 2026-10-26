@@ -248,7 +248,8 @@ and simulator independence are also explicit design goals.
 
 ## Contract decisions and remaining details
 
-[SESSION_CONTRACT.md](SESSION_CONTRACT.md) defines contract version 1.0, camelCase
+[SESSION_CONTRACT.md](SESSION_CONTRACT.md) defines supported contract versions 1.0
+and 1.1, camelCase
 JSON fields, required/optional data, normalized units, UTC timestamps, separate
 score ownership, route zones, weights, profile history, and duplicate handling.
 IDs are nonempty strings independent of database-generated row IDs. EventType
@@ -328,6 +329,31 @@ and the two main demo fixtures have 21 samples each, preserving score expectatio
 TRAJECTORY_REPLAY.md records mapping, angular interpolation, verification, and
 limits. This is neither video nor 3D replay. History, persistence, progress charts,
 and configuration editing remain planned; History/Settings stay disabled.
+
+Stage 5.5A adds optional contract 1.1 replay data while retaining 1.0 support.
+Telemetry gains nullable vertical speed, camera tilt/horizontal FOV, pack/cell
+voltage, signed current, consumed capacity, control RSSI, failsafe, flight mode
+and armed state. ReplayContext holds neutral environment/scenario IDs and optional
+dynamic tracks; tracks record entity identity/type/archetype, timed transforms,
+active/state values and metadata. New data is validated and retained without
+changing scoring, recommendations or existing 2D replay algorithms.
+
+ReplayCapabilityService reports drone, environment and dynamic-track availability
+plus local launch prerequisites. Successful imports retain the absolute source
+path only in runtime SessionImportResult/MainViewModel state. Open 3D Replay on
+Session result uses FPVTRAINING_SIMULATOR_EXE and safely passes the original file
+as `-ReplayMode` and `-ReplayFile=<absolute path>`. Missing prerequisites produce
+nonfatal in-app messages; View trajectory still opens local 2D replay. Two synthetic
+1.1 fixtures coexist with unchanged 1.0 fixtures. Verification: 320/320 tests,
+0 build warnings/errors; obstacle/target scores remain 82.67/90.00.
+
+[REPLAY_INTEGRATION.md](REPLAY_INTEGRATION.md) specifies conceptual source mapping
+and future Stage 5.5B in the separate DroneDiploma repository: CLI/file validation,
+neutral map/visual lookup, recorded transforms/states instead of gameplay AI/physics,
+FPV with body-relative camera tilt/horizontal FOV, third person, minimap, event log,
+and synchronized timeline. No simulator code/exporter or 3D rendering is implemented
+here. Static worlds remain simulator-owned; source paths stay outside JSON.
+Stage 6 persistence/history and Stage 7 configuration editing remain planned.
 
 Repository: https://github.com/ferum55/FPVTrainingAssistant.git
 

@@ -1,4 +1,4 @@
-# FPV Training Assistant — UI guide (Stages 4–5)
+# FPV Training Assistant — UI guide (Stages 4–5.5A)
 
 ## Start the application
 
@@ -28,7 +28,7 @@ vertically; the shell and navigation remain visible.
 | History | Disabled; no persistence or history storage exists. |
 | Settings | Disabled; no profile editor exists. |
 
-The start screen explains the workflow, contract version 1.0, supported exercises,
+The start screen explains the workflow, contract versions 1.0/1.1, supported exercises,
 and the synthetic built-in demo profiles. The picker initially opens the
 TestSessions directory copied beside the executable. JSON is the primary file
 filter; an all-files filter is also available.
@@ -211,11 +211,59 @@ remain 82.67 and 90.00. Live checks covered replay controls/speeds, events, metr
 resizing, no-route TargetMission, new-session reset, and a temporary 6000-sample
 path. The Stage 4 verification above remains a record of that delivery.
 
+## Open 3D Replay (Stage 5.5A)
+
+The Session result screen has two independent actions: View trajectory opens the
+existing local 2D screen; Open 3D Replay hands the original imported file to an
+external configured simulator. It is unavailable before a result is loaded or
+while importing. Once a result exists, clicking can explain unmet prerequisites
+without losing that result or the ability to use 2D replay.
+
+Try replay_obstacle_course_v1_1.json or replay_target_mission_v1_1.json in
+TestSessions. Both are synthetic 21-sample files with camera/battery/link/flight
+state extensions, a neutral environment/scenario and a moving entity track.
+Their scores remain 82.67 and 90.00. Existing 1.0 sessions still import and replay
+locally; absent environment data only prevents the external 3D handoff.
+
+To enable the handoff, set FPVTRAINING_SIMULATOR_EXE to the executable's full path
+before launching the assistant. Configuration steps and the precise
+`-ReplayMode -ReplayFile="absolute path"` protocol are in
+[REPLAY_INTEGRATION.md](REPLAY_INTEGRATION.md). A compatible simulator implementation
+is still required; current DroneDiploma is not claimed to support this protocol.
+
+The shell displays an in-app status message above the current screen:
+
+- No replay environment: "This session does not contain the environment information required for 3D replay."
+- No configured executable: "Simulator executable is not configured."
+- Source file deleted/moved: "The source replay file is no longer available."
+- Executable deleted/moved: "The configured simulator executable is no longer available."
+
+If several conditions fail, the first limitation is shown, with missing environment
+preceding source/configuration checks. The underlying capability retains all
+reasons. File availability is rechecked at click time. No MessageBox is required.
+Successful process start reports handoff only; local replay pauses. Importing
+another file clears launch status and replaces the source path/capability. The
+file itself is never rewritten and absolute paths never enter TrainingSession JSON.
+
+Stage 5.5A verification: build has 0 warnings/errors; 320/320 tests pass, including
+all 245 previous tests. New headless cases cover unavailable commands, both contract
+versions, missing prerequisites, deleted source files, handoff arguments, refreshed
+state and continued local trajectory navigation. Process launches use test doubles.
+
+Live WPF verification used the standard picker and accessibility controls (no pixel
+assertions): the 1.1 obstacle fixture displayed 82.67 and the exact missing-simulator
+configuration message after Open 3D Replay. The unchanged 1.0 target fixture showed
+90.00 and the exact missing-environment message; View trajectory opened the local
+screen with its playback/stepping controls. No external simulator was started.
+
 ## Current limits
 
 Only the current session/result is held in memory; closing the application loses
-it. There is no SQLite, saved history, progress chart, video/3D replay,
-profile editing, authentication, or simulator integration/exporter. Imported
+it. There is no SQLite, saved history, progress chart, video/3D renderer,
+profile editing, authentication, simulator-side replay implementation or exporter.
+Stage 5.5A supplies only the assistant contract/handoff; FPV, third-person views,
+minimap, simulator event log and synchronized simulator timeline remain Stage 5.5B.
+Extended sensors/entity tracks are retained but not drawn in the local 2D screen. Imported
 files are read without modification. Built-in profiles support only their exact
 synthetic identities and version 1. Large event/result lists have a straightforward
 scrolling card layout rather than a dedicated high-volume event browser.

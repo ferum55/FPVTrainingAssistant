@@ -4,9 +4,10 @@ The product requirements and boundaries are recorded in [PROJECT_CONTEXT.md](PRO
 Each stage should leave a buildable application. Keep changes small, use MVVM,
 and avoid adding dependencies before they are needed.
 
-Stages 1 through 5 are delivered: the scaffold, domain models, contracts,
+Stages 1 through 5 and Stage 5.5A are delivered: the scaffold, domain models, contracts,
 JSON import/validation, deterministic analysis, WPF review UI, top-down trajectory
-and telemetry replay, synthetic examples, and focused xUnit tests. Persistence,
+and telemetry replay, replay-capable contract 1.1, assistant-side simulator handoff,
+synthetic examples, and focused xUnit tests. Simulator-side Stage 5.5B, persistence,
 configuration editing, and later stages remain planned.
 
 ## Stage 1 - project structure and models
@@ -105,6 +106,45 @@ from finite visual context. Live checks covered both exercises, controls, resize
 new-session reset, and a temporary 6000-sample path. Stage 5 verification: 0 build
 warnings/errors and 245/245 tests, including all 203 previous tests. No Stage 6+
 features are added.
+
+## Stage 5.5A - replay-capable contract and simulator handoff (delivered)
+
+- Accept explicit versions 1.0 and 1.1 without changing existing fixture versions.
+- Add nullable extended telemetry, neutral ReplayContext and dynamic entity tracks.
+- Validate new numeric types/ranges, neutral IDs and per-track times/transforms.
+- Retain the normalized source file path only in runtime import/application state.
+- Report drone/environment/entity/local-launch capability independently of scoring.
+- Read FPVTRAINING_SIMULATOR_EXE; safely hand off the original source file using
+  `-ReplayMode` and one `-ReplayFile=<absolute path>` argument without a shell.
+- Add Open 3D Replay separately from View trajectory, with recoverable in-app
+  messages for missing environment, configuration or source file.
+- Add two deterministic synthetic 1.1 fixtures and tests using process doubles.
+
+Delivered and specified in REPLAY_INTEGRATION.md and SESSION_CONTRACT.md. Build:
+0 warnings/errors. Tests: 320/320, retaining all 245 prior cases and adding 75.
+Obstacle/target scores remain 82.67/90.00; analysis services and local 2D replay
+algorithms are unchanged. No simulator modifications, 3D renderer, exporter,
+database, network or settings editor are included.
+
+## Stage 5.5B - simulator-side replay integration (future, separate repository)
+
+- Parse and independently validate the replay command/file in DroneDiploma.
+- Resolve neutral environment/scenario/archetype IDs to local maps and visuals.
+- Apply recorded drone/entity transforms and states with linear position and
+  shortest-path angle interpolation, disabling normal AI/physics as drivers.
+- Define optional sensor/camera defaults, unknown visual fallback and partial-track
+  coverage without re-simulating AI.
+- Implement FPV camera with body-relative tilt/horizontal FOV, third-person camera,
+  show/hide minimap, chronological event log, and play/pause/seek at 0.5x/1x/2x.
+- Obtain optional reference routes from compatible simulator profile/scenario data;
+  session JSON currently does not embed the assistant's route geometry.
+- Verify end-to-end handoff, synchronization, seeks and errors using both new
+  synthetic files. Any exporter requires separate authorization and source-unit
+  verification; current DroneDiploma is not claimed to export the contract.
+
+Acceptance: the separate simulator reconstructs the recorded scene and views
+without gameplay resimulation; normal simulator mode remains separate. This is
+not implemented by Stage 5.5A. REPLAY_INTEGRATION.md defines the precise handoff.
 
 ## Stage 6 - SQLite persistence/history
 

@@ -173,6 +173,37 @@ exists, not a historical migration. Generic default profiles and analysis formul
 are unchanged. Other contract/invalid/unknown-event fixtures are retained.
 No data is claimed to be an export from DroneDiploma.
 
+## Contract 1.1 and external handoff (Stage 5.5A)
+
+The existing 2D services, angle/position interpolation and route calculations are
+unchanged. Both supported contract versions 1.0 and 1.1 supply the same required
+flight samples. New nullable telemetry and ReplayContext/entity tracks are retained
+and validated, but do not alter 2D paths, route scores or interpolation results.
+The local view does not render dynamic entities or additional sensor/camera fields.
+
+Session result also offers Open 3D Replay, independently of View trajectory. It
+checks drone data, replay environment, source file and configured executable,
+then hands that same physical file to an external simulator using ArgumentList.
+Missing configuration/context/file is shown in-app and leaves local replay usable.
+No absolute source path is serialized into the session. No 3D renderer, video,
+Unreal library, physics or AI resimulation is added to the assistant.
+
+Future Stage 5.5B in DroneDiploma must implement the documented CLI, neutral
+environment/visual lookup, recorded drone/entity transforms and discrete states,
+FPV with body-relative tilt and horizontal FOV, third-person camera, minimap,
+event log and synchronized timeline. Conceptual position interpolation remains
+linear and angle interpolation follows the same shortest normalized difference;
+normal gameplay AI/physics must not drive recorded replay actors.
+[REPLAY_INTEGRATION.md](REPLAY_INTEGRATION.md) specifies responsibilities, partial
+coverage/default questions and source-unit mapping. These simulator features are
+not implemented or claimed to exist in the current simulator.
+
+The new replay_obstacle_course_v1_1.json and replay_target_mission_v1_1.json fixtures
+each add synthetic context, extended telemetry and one moving track to the existing
+21-sample demonstrations. Existing 1.0 fixture files remain unchanged. Stage 5.5A
+verification: 320/320 tests, retaining all 245 Stage 5 cases; build has 0 warnings
+and errors. Existing obstacle/target scores remain 82.67/90.00.
+
 ## Verification and limitations
 
 Stage 5 builds both targets with 0 warnings/errors; all 245 tests pass, including

@@ -28,7 +28,7 @@
             </Border>
             <Border Style="{StaticResource Card}"><Grid>
                 <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
-                <StackPanel Margin="0,0,24,0"><TextBlock Text="Supported data" FontWeight="SemiBold" Margin="0,0,0,9" /><TextBlock Text="JSON contract 1.0&#x0a;ObstacleCourse · TargetMission" Foreground="{StaticResource MutedBrush}" /></StackPanel>
+                <StackPanel Margin="0,0,24,0"><TextBlock Text="Supported data" FontWeight="SemiBold" Margin="0,0,0,9" /><TextBlock Text="JSON contract 1.0 / 1.1&#x0a;ObstacleCourse · TargetMission" Foreground="{StaticResource MutedBrush}" /></StackPanel>
                 <StackPanel Grid.Column="1"><TextBlock Text="Built-in demonstration profiles" FontWeight="SemiBold" Margin="0,0,0,9" /><TextBlock Text="Prepared files use synthetic profiles and route data. Other files need a compatible profile ID and version." Foreground="{StaticResource MutedBrush}" /></StackPanel>
             </Grid></Border>
         </StackPanel>

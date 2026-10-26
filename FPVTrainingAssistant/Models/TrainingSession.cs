@@ -31,6 +31,7 @@ public sealed class TrainingSession
     public required string SourceSimulator { get; init; }
     public bool? Success { get; init; }
     public double? SimulatorScore { get; init; }
+    public ReplayContext? Replay { get; init; }
 
     public double? AssistantFinalScore
     {

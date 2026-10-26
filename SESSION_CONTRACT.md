@@ -1,10 +1,21 @@
-# Session contract 1.0
+# Session contracts 1.0 and 1.1
 
 ## Scope and representation
 
 The root JSON object represents one TrainingSession, not a simulator-specific
-envelope. Stage 2 implements JSON file import and validation in the service layer.
-Analysis, scoring, persistence, and application UI remain outside this stage.
+envelope. Contract 1.0 remains the supported analytical session format. Contract
+1.1 adds optional telemetry and neutral replay context for a future simulator
+consumer. The importer accepts exactly 1.0 and 1.1; 2.0 and other versions fail
+with UnsupportedContractVersion. The TrainingSession default remains 1.0, but
+JSON must always supply the version. Existing 1.0 fixtures remain unchanged.
+
+Stage 5.5A implements the extension and assistant-side simulator handoff. The
+existing analysis, scoring and local 2D replay also work with 1.1. A 1.1 file
+need not include replay context or new telemetry. Producers adding these fields
+should declare 1.1. Recognized extension fields are validated in either supported
+version, so changing the version to 1.0 cannot bypass their checks. No simulator
+exporter or simulator-side replay is implemented here; see
+[REPLAY_INTEGRATION.md](REPLAY_INTEGRATION.md).
 
 JSON property names use camelCase; C# properties use PascalCase. SessionJson.Options
 centralizes System.Text.Json configuration and is read-only. Import tolerates
@@ -32,7 +43,7 @@ importer exposes a session only after both validation phases succeed.
 | X, Y, Z, reference points | Meters in one shared local Cartesian frame. X and Y are horizontal; Z points up. |
 | AltitudeM | Meters relative to the source's declared local altitude datum. |
 | SpeedMps | Meters per second; nonnegative speed magnitude. |
-| PitchDeg, RollDeg, YawDeg | Degrees, normalized after successful validation to [-180, 180). |
+| PitchDeg, RollDeg, YawDeg | Degrees; drone telemetry is normalized after validation to [-180, 180). Entity angles must be finite and consumers normalize them for interpolation. |
 | BatteryPercent | Percentage 0..100 when available. |
 | ControlLinkQualityPercent, VideoLinkQualityPercent | Optional percentages 0..100. |
 | TimeSec | Nonnegative elapsed seconds from session start, for samples and events. |
@@ -53,7 +64,7 @@ The precise altitude datum remains source-declared and must match the profile.
 
 | JSON field | Type | Required/meaning |
 | --- | --- | --- |
-| contractVersion | string | Required; exactly "1.0". Missing input is rejected despite the model default; another value gives UnsupportedContractVersion. |
+| contractVersion | string | Required; exactly "1.0" or "1.1". Missing input is rejected despite the model default; other versions give UnsupportedContractVersion. |
 | sessionId | string | Required; globally unique in the assistant database. |
 | operatorId | string | Required; internal operator identity, no personal information required. |
 | profileId | string | Required; identifies the exercise profile. |
@@ -67,6 +78,7 @@ The precise altitude datum remains source-declared and must match the profile.
 | assistantFinalScore | number or null | Optional; assistant-owned score 0..100, absent/null before analysis. |
 | telemetry | array | Required, nonnull; chronological telemetry samples. Empty samples may be represented in memory but are insufficient for trajectory analysis. |
 | events | array | Required, nonnull; may arrive out of order and are sorted after successful import. An empty array is allowed; exercise-specific warnings apply below. |
+| replay | object or null | Added in 1.1; optional environment/scenario identity and recorded dynamic entity tracks. Omitted/null remains valid. No absolute local source path is stored here. |
 
 Duration is calculated as EndedAtUtc - StartedAtUtc and is excluded from JSON with
 JsonIgnore. The model's Duration getter throws InvalidOperationException for
@@ -108,6 +120,79 @@ Telemetry values describe the flight at TimeSec seconds after the start. Raw
 speed, altitude, pitch, and roll remain supplementary data, not universal quality
 indicators. A specific exercise criterion may use them explicitly. No scoring
 logic belongs in TelemetrySample.
+
+### Optional telemetry added in 1.1
+
+All these fields may be omitted or null. Numeric fields must be finite when
+supplied. Existing required telemetry and percentage rules are unchanged.
+
+| JSON field | Type | Unit, meaning and validation |
+| --- | --- | --- |
+| verticalSpeedMps | number? | m/s, positive upward and negative downward. |
+| cameraTiltDeg | number? | Camera pitch offset relative to the body; positive nose-up, degrees, wrapped into [-180, 180) after validation. Add to body pitch using the consumer's correct local rotation composition. |
+| cameraFovDeg | number? | Horizontal FOV in degrees, strictly greater than 0 and less than 180. |
+| batteryVoltageV | number? | Full pack volts, >= 0. |
+| cellVoltageV | number? | Representative/per-cell volts, >= 0. |
+| currentA | number? | Amperes; signed current is allowed, including negative values. Source current-sign convention is source-owned. |
+| consumedMah | number? | Consumed capacity in milliamp-hours, >= 0. |
+| controlRssiDbm | number? | Control radio RSSI in dBm, no arbitrary signal range imposed. |
+| failsafe | boolean? | Control-link failsafe state. |
+| flightMode | string? | Neutral open mode, e.g. ACRO, ANGLE, HORIZON, ACRO_TRAINER. Unknown strings remain valid. |
+| armed | boolean? | Drone armed state. |
+
+These fields describe recorded state and never add implicit scoring rules.
+The existing 2D replay still interpolates its original telemetry fields; the
+new sensors and camera parameters are retained for future consumers.
+
+## ReplayContext (optional, added in 1.1)
+
+| JSON field | Type | Meaning |
+| --- | --- | --- |
+| environmentId | string | Required nonblank neutral environment ID, e.g. training-ground-01. Identifies the simulator's static environment; no map assets are embedded. |
+| scenarioId | string or null | Optional neutral scenario ID, e.g. obstacle-course-basic. |
+| entities | array | Required nonnull array of ReplayEntityTrack. Empty is valid for a static exercise. |
+
+EnvironmentId, ScenarioId when supplied, and ArchetypeId when supplied use open
+logical names without `/`, `\`, `:`, single quotes or double quotes. This excludes
+filesystem paths, Unreal package paths such as /Game/Maps/Training, and Blueprint
+object paths. There is no closed registry in the assistant; future environments
+and archetypes remain valid logical names. Values are preserved and case-sensitive.
+
+### ReplayEntityTrack
+
+| JSON field | Type | Meaning |
+| --- | --- | --- |
+| entityId | string | Required nonblank stable session-local ID; unique ordinally within replay.entities. Events can refer to the same identity. |
+| entityType | string | Required nonblank open type, e.g. vehicle, infantry, target, objective, movingObstacle. |
+| archetypeId | string or null | Optional neutral visual identity, e.g. training-obstacle; future consumer maps it to local visuals. |
+| samples | array | Required nonnull, nonempty array of ReplayEntitySample. |
+| metadata | object or null | Optional string-to-string dictionary; unique case-sensitive keys, no null values. |
+
+### ReplayEntitySample
+
+Every sample requires numeric timeSec, x, y, z, pitchDeg, rollDeg and yawDeg.
+Position uses meters and the drone's shared local frame; angles use the same
+degree/sign conventions. All transform numbers must be finite. TimeSec must be
+nonnegative, strictly increasing within each individual track, and no later than
+session duration plus the same 0.000001-second tolerance as telemetry. Tracks
+may have different sample rates and need not cover the entire session. A single
+sample is valid. Samples are never silently sorted.
+
+Optional nullable isActive is boolean (spawned/present versus inactive/removed).
+Optional nullable state is an open string such as alive, damaged, destroyed,
+moving, stopped or evacuating. Unknown types, archetypes and states are retained;
+the assistant assigns no gameplay behavior. Optional metadata has the same
+string-dictionary rules as track metadata. Null items, missing transform fields,
+invalid types, duplicate JSON properties and invalid metadata are rejected before
+analysis. Entity transforms are retained as supplied; future replay consumers
+normalize finite angles and use shortest-path angle interpolation.
+
+Only replay-relevant dynamic entities are recorded. Static geometry comes from
+environmentId. AI and gameplay physics must not re-simulate dynamic positions:
+at original time 30 a vehicle at A must be at recorded A during replay, rather
+than wherever newly run AI happens to move it. The future simulator applies
+recorded transforms/states. This data has no effect on assistant scores,
+mistakes, recommendations, route analysis or current 2D trajectory rendering.
 
 ## SessionEvent
 
@@ -164,7 +249,11 @@ IsValid means no errors. Independent issues accumulate within each validation
 phase. Structural errors stop deserialization; semantic validation starts only
 when the structure is valid.
 
-SessionImportResult contains Session, Validation, IsSuccess, and TechnicalError.
+SessionImportResult contains Session, Validation, IsSuccess, TechnicalError, and
+optional SourceFilePath. Successful file import sets SourceFilePath to the normalized
+absolute physical file path. This is runtime state on the import result and
+MainViewModel, never a TrainingSession property or neutral JSON field. Import
+does not rewrite the file; simulator handoff uses that same original file.
 Failed attempts expose no session. IsSuccess requires a validated session, no
 errors, and no technical failure. Warnings alone do not prevent success. Ordinary
 bad input, malformed JSON, empty/invalid paths, and missing files return validation

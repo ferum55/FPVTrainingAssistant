@@ -9,6 +9,11 @@ public sealed class MainViewModel : ViewModelBase
     private readonly ISessionImportService _importer;
     private readonly IExerciseProfileProvider _profiles;
     private readonly ISessionAnalyzer _analyzer;
+    private readonly ISimulatorReplayLauncher _replayLauncher;
+    private readonly ReplayCapabilityService _replayCapabilities = new();
+    private string? _sourceFilePath;
+    private ReplayCapability? _replayCapability;
+    private string _replayLaunchMessage = "";
     private ViewModelBase _currentViewModel;
     private bool _isBusy;
     private string _statusText = "Ready to import";
@@ -20,18 +25,20 @@ public sealed class MainViewModel : ViewModelBase
     private IReadOnlyList<ValidationIssue> _validationWarnings = [];
 
     public MainViewModel(IFileDialogService fileDialog, ISessionImportService importer,
-        IExerciseProfileProvider profiles, ISessionAnalyzer analyzer)
+        IExerciseProfileProvider profiles, ISessionAnalyzer analyzer, ISimulatorReplayLauncher? replayLauncher = null)
     {
         _fileDialog = fileDialog;
         _importer = importer;
         _profiles = profiles;
         _analyzer = analyzer;
+        _replayLauncher = replayLauncher ?? new SimulatorReplayLauncher();
         ImportCommand = new(PickAndImportAsync, () => !IsBusy, _ => ShowUnexpectedFailure());
         ImportView = new(ImportCommand);
         _currentViewModel = ImportView;
         NavigateImportCommand = new(() => CurrentViewModel = ImportView, () => !IsBusy);
         NavigateResultCommand = new(() => CurrentViewModel = ResultView!, () => !IsBusy && HasResult);
         NavigateTrajectoryCommand = new(() => CurrentViewModel = TrajectoryView!, () => !IsBusy && HasTrajectory);
+        Open3DReplayCommand = new(Open3DReplay, () => !IsBusy && HasResult && ImportedSession is not null);
     }
 
     public ImportSessionViewModel ImportView { get; }
@@ -39,6 +46,18 @@ public sealed class MainViewModel : ViewModelBase
     public RelayCommand NavigateImportCommand { get; }
     public RelayCommand NavigateResultCommand { get; }
     public RelayCommand NavigateTrajectoryCommand { get; }
+    public RelayCommand Open3DReplayCommand { get; }
+    public string? SourceFilePath { get => _sourceFilePath; private set => SetProperty(ref _sourceFilePath, value); }
+    public ReplayCapability? ReplayCapability { get => _replayCapability; private set => SetProperty(ref _replayCapability, value); }
+    public string ReplayLaunchMessage
+    {
+        get => _replayLaunchMessage;
+        private set
+        {
+            if (SetProperty(ref _replayLaunchMessage, value)) OnPropertyChanged(nameof(HasReplayLaunchMessage));
+        }
+    }
+    public bool HasReplayLaunchMessage => !string.IsNullOrEmpty(ReplayLaunchMessage);
     public ViewModelBase CurrentViewModel
     {
         get => _currentViewModel;
@@ -68,6 +87,7 @@ public sealed class MainViewModel : ViewModelBase
             NavigateImportCommand.RaiseCanExecuteChanged();
             NavigateResultCommand.RaiseCanExecuteChanged();
             NavigateTrajectoryCommand.RaiseCanExecuteChanged();
+            Open3DReplayCommand.RaiseCanExecuteChanged();
         }
     }
     public TrainingSession? ImportedSession { get => _importedSession; private set => SetProperty(ref _importedSession, value); }
@@ -82,6 +102,7 @@ public sealed class MainViewModel : ViewModelBase
             if (!SetProperty(ref _resultView, value)) return;
             OnPropertyChanged(nameof(HasResult));
             NavigateResultCommand.RaiseCanExecuteChanged();
+            Open3DReplayCommand.RaiseCanExecuteChanged();
         }
     }
     public bool HasResult => ResultView is not null;
@@ -113,6 +134,9 @@ public sealed class MainViewModel : ViewModelBase
         {
             ImportView.Begin(filePath);
             ImportedSession = null;
+            SourceFilePath = null;
+            ReplayCapability = null;
+            ReplayLaunchMessage = "";
             Profile = null;
             AnalysisResult = null;
             ResultView = null;
@@ -130,6 +154,8 @@ public sealed class MainViewModel : ViewModelBase
             }
 
             ImportedSession = import.Session!;
+            SourceFilePath = import.SourceFilePath;
+            RefreshReplayCapability();
             Profile = _profiles.Resolve(ImportedSession);
             if (Profile is null)
             {
@@ -143,7 +169,7 @@ public sealed class MainViewModel : ViewModelBase
             var profile = Profile;
             AnalysisResult = await Task.Run(() => _analyzer.Analyze(session, profile));
             TrajectoryView = new(session, profile, AnalysisResult);
-            ResultView = new(session, profile, AnalysisResult, ValidationWarnings, NavigateTrajectoryCommand);
+            ResultView = new(session, profile, AnalysisResult, ValidationWarnings, NavigateTrajectoryCommand, Open3DReplayCommand);
             CurrentViewModel = ResultView;
             StatusText = "Analysis complete";
         }
@@ -159,6 +185,28 @@ public sealed class MainViewModel : ViewModelBase
         finally
         {
             IsBusy = false;
+        }
+    }
+
+    private void RefreshReplayCapability() => ReplayCapability =
+        _replayCapabilities.Evaluate(ImportedSession, SourceFilePath, _replayLauncher.SimulatorExecutablePath);
+
+    private void Open3DReplay()
+    {
+        try
+        {
+            RefreshReplayCapability();
+            if (ReplayCapability is not { CanLaunchSimulatorReplay: true })
+            {
+                ReplayLaunchMessage = ReplayCapability?.Limitations.FirstOrDefault() ?? "3D replay is unavailable.";
+                return;
+            }
+            TrajectoryView?.Pause();
+            ReplayLaunchMessage = _replayLauncher.Launch(SourceFilePath).Message;
+        }
+        catch (Exception)
+        {
+            ReplayLaunchMessage = "The simulator could not be started. Check the executable configuration and try again.";
         }
     }
 

@@ -7,7 +7,7 @@ namespace FPVTrainingAssistant.ViewModels;
 
 public sealed class SessionResultViewModel : ViewModelBase
 {
-    public SessionResultViewModel(TrainingSession session, ExerciseProfile profile, SessionAnalysisResult result, IReadOnlyList<ValidationIssue> warnings, ICommand? viewTrajectoryCommand = null)
+    public SessionResultViewModel(TrainingSession session, ExerciseProfile profile, SessionAnalysisResult result, IReadOnlyList<ValidationIssue> warnings, ICommand? viewTrajectoryCommand = null, ICommand? open3DReplayCommand = null)
     {
         OperatorId = session.OperatorId;
         SessionId = session.SessionId;
@@ -27,6 +27,7 @@ public sealed class SessionResultViewModel : ViewModelBase
         Events = Array.AsReadOnly(session.Events.OrderBy(e => e.TimeSec).Select(e => new EventViewModel(e)).ToArray());
         Warnings = Array.AsReadOnly(warnings.ToArray());
         ViewTrajectoryCommand = viewTrajectoryCommand ?? new RelayCommand(() => { }, () => false);
+        Open3DReplayCommand = open3DReplayCommand ?? new RelayCommand(() => { }, () => false);
         HasTrajectoryData = session.Telemetry.Count >= 2;
     }
 
@@ -52,5 +53,6 @@ public sealed class SessionResultViewModel : ViewModelBase
     public bool HasNoRecommendations => Recommendations.Count == 0;
     public bool HasNoEvents => Events.Count == 0;
     public ICommand ViewTrajectoryCommand { get; }
+    public ICommand Open3DReplayCommand { get; }
     public bool HasTrajectoryData { get; }
 }

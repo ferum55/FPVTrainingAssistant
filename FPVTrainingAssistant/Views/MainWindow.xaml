@@ -19,7 +19,7 @@
                 </StackPanel>
                 <StackPanel DockPanel.Dock="Bottom">
                     <Border Background="{StaticResource PanelBrush}" CornerRadius="6" Padding="12"><StackPanel><TextBlock Text="Local session review" FontSize="12" /><TextBlock Text="Synthetic demo profiles" Style="{StaticResource MutedText}" Margin="0,5,0,0" /></StackPanel></Border>
-                    <TextBlock Text="Contract 1.0  ·  Desktop prototype" Style="{StaticResource MutedText}" FontSize="10" Margin="0,14,0,0" />
+                    <TextBlock Text="Contract 1.0 / 1.1  ·  Desktop prototype" Style="{StaticResource MutedText}" FontSize="10" Margin="0,14,0,0" />
                 </StackPanel>
                 <StackPanel>
                     <TextBlock Text="WORKSPACE" Style="{StaticResource MutedText}" FontSize="10" Margin="14,0,0,12" />
@@ -34,15 +34,18 @@
             </DockPanel>
         </Border>
         <Grid Grid.Column="1">
-            <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+            <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="*" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
             <Border BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,0,1" Padding="32,23">
                 <DockPanel>
                     <Button DockPanel.Dock="Right" Content="_Import session" Command="{Binding ImportCommand}" Style="{StaticResource PrimaryButton}" VerticalAlignment="Center" ToolTip="Import a JSON session (Ctrl+O)" />
                     <StackPanel><TextBlock Text="OPERATOR TRAINING" Style="{StaticResource MutedText}" FontSize="10" /><TextBlock Text="{Binding ScreenTitle}" FontSize="26" FontWeight="SemiBold" Margin="0,4,0,0" /></StackPanel>
                 </DockPanel>
             </Border>
-            <ContentControl Grid.Row="1" Content="{Binding CurrentViewModel}" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" />
-            <Border Grid.Row="2" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0" Padding="32,11"><DockPanel><TextBlock Text="JSON session review" DockPanel.Dock="Right" Style="{StaticResource MutedText}" /><TextBlock Text="{Binding StatusText}" Style="{StaticResource MutedText}" /></DockPanel></Border>
+            <Border Grid.Row="1" Style="{StaticResource Card}" BorderBrush="{StaticResource WarningBrush}" Margin="32,12,32,0" Visibility="{Binding HasReplayLaunchMessage, Converter={StaticResource BoolVisibility}}">
+                <TextBlock Text="{Binding ReplayLaunchMessage}" TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite" />
+            </Border>
+            <ContentControl Grid.Row="2" Content="{Binding CurrentViewModel}" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" />
+            <Border Grid.Row="3" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0" Padding="32,11"><DockPanel><TextBlock Text="JSON session review" DockPanel.Dock="Right" Style="{StaticResource MutedText}" /><TextBlock Text="{Binding StatusText}" Style="{StaticResource MutedText}" /></DockPanel></Border>
         </Grid>
     </Grid>
 </Window>

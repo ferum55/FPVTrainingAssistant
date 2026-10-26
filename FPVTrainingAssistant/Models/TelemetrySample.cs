@@ -18,4 +18,15 @@ public sealed class TelemetrySample
     public double? BatteryPercent { get; init; }
     public double? ControlLinkQualityPercent { get; init; }
     public double? VideoLinkQualityPercent { get; init; }
+    public double? VerticalSpeedMps { get; init; }
+    public double? CameraTiltDeg { get; init; }
+    public double? CameraFovDeg { get; init; }
+    public double? BatteryVoltageV { get; init; }
+    public double? CellVoltageV { get; init; }
+    public double? CurrentA { get; init; }
+    public double? ConsumedMah { get; init; }
+    public double? ControlRssiDbm { get; init; }
+    public bool? Failsafe { get; init; }
+    public string? FlightMode { get; init; }
+    public bool? Armed { get; init; }
 }
