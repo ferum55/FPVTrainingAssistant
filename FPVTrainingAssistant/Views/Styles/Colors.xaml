@@ -9,4 +9,10 @@
     <SolidColorBrush x:Key="AccentBrush" Color="#62D8C2" />
     <SolidColorBrush x:Key="WarningBrush" Color="#F0C77B" />
     <SolidColorBrush x:Key="ErrorBrush" Color="#FFACA5" />
+    <SolidColorBrush x:Key="RouteGreenBrush" Color="#245248" />
+    <SolidColorBrush x:Key="RouteYellowBrush" Color="#514A2C" />
+    <SolidColorBrush x:Key="RouteRedBrush" Color="#4E303C" />
+    <SolidColorBrush x:Key="ReferenceRouteBrush" Color="#D4CBFF" />
+    <SolidColorBrush x:Key="RecordedTrajectoryBrush" Color="#79BEFF" />
+    <SolidColorBrush x:Key="DroneMarkerBrush" Color="#FFE5A0" />
 </ResourceDictionary>

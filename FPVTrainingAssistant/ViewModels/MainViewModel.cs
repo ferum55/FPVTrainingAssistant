@@ -16,6 +16,7 @@ public sealed class MainViewModel : ViewModelBase
     private ExerciseProfile? _profile;
     private SessionAnalysisResult? _analysisResult;
     private SessionResultViewModel? _resultView;
+    private TrajectoryViewModel? _trajectoryView;
     private IReadOnlyList<ValidationIssue> _validationWarnings = [];
 
     public MainViewModel(IFileDialogService fileDialog, ISessionImportService importer,
@@ -30,26 +31,31 @@ public sealed class MainViewModel : ViewModelBase
         _currentViewModel = ImportView;
         NavigateImportCommand = new(() => CurrentViewModel = ImportView, () => !IsBusy);
         NavigateResultCommand = new(() => CurrentViewModel = ResultView!, () => !IsBusy && HasResult);
+        NavigateTrajectoryCommand = new(() => CurrentViewModel = TrajectoryView!, () => !IsBusy && HasTrajectory);
     }
 
     public ImportSessionViewModel ImportView { get; }
     public AsyncRelayCommand ImportCommand { get; }
     public RelayCommand NavigateImportCommand { get; }
     public RelayCommand NavigateResultCommand { get; }
+    public RelayCommand NavigateTrajectoryCommand { get; }
     public ViewModelBase CurrentViewModel
     {
         get => _currentViewModel;
         private set
         {
+            if (_currentViewModel is TrajectoryViewModel trajectory && !ReferenceEquals(value, trajectory)) trajectory.Pause();
             if (!SetProperty(ref _currentViewModel, value)) return;
             OnPropertyChanged(nameof(ScreenTitle));
             OnPropertyChanged(nameof(IsImportScreen));
             OnPropertyChanged(nameof(IsResultScreen));
+            OnPropertyChanged(nameof(IsTrajectoryScreen));
         }
     }
     public bool IsImportScreen => ReferenceEquals(CurrentViewModel, ImportView);
-    public bool IsResultScreen => !IsImportScreen;
-    public string ScreenTitle => IsImportScreen ? "Import session" : "Session result";
+    public bool IsResultScreen => CurrentViewModel is SessionResultViewModel;
+    public bool IsTrajectoryScreen => CurrentViewModel is TrajectoryViewModel;
+    public string ScreenTitle => IsImportScreen ? "Import session" : IsTrajectoryScreen ? "Trajectory & replay" : "Session result";
     public string StatusText { get => _statusText; private set => SetProperty(ref _statusText, value); }
     public bool IsBusy
     {
@@ -61,6 +67,7 @@ public sealed class MainViewModel : ViewModelBase
             ImportCommand.RaiseCanExecuteChanged();
             NavigateImportCommand.RaiseCanExecuteChanged();
             NavigateResultCommand.RaiseCanExecuteChanged();
+            NavigateTrajectoryCommand.RaiseCanExecuteChanged();
         }
     }
     public TrainingSession? ImportedSession { get => _importedSession; private set => SetProperty(ref _importedSession, value); }
@@ -78,6 +85,18 @@ public sealed class MainViewModel : ViewModelBase
         }
     }
     public bool HasResult => ResultView is not null;
+    public TrajectoryViewModel? TrajectoryView
+    {
+        get => _trajectoryView;
+        private set
+        {
+            _trajectoryView?.Pause();
+            if (!SetProperty(ref _trajectoryView, value)) return;
+            OnPropertyChanged(nameof(HasTrajectory));
+            NavigateTrajectoryCommand.RaiseCanExecuteChanged();
+        }
+    }
+    public bool HasTrajectory => TrajectoryView?.CanReplay == true;
 
     private async Task PickAndImportAsync()
     {
@@ -97,6 +116,7 @@ public sealed class MainViewModel : ViewModelBase
             Profile = null;
             AnalysisResult = null;
             ResultView = null;
+            TrajectoryView = null;
             ValidationWarnings = [];
             StatusText = "Importing session...";
             var import = await _importer.ImportAsync(filePath);
@@ -122,7 +142,8 @@ public sealed class MainViewModel : ViewModelBase
             var session = ImportedSession;
             var profile = Profile;
             AnalysisResult = await Task.Run(() => _analyzer.Analyze(session, profile));
-            ResultView = new(session, profile, AnalysisResult, ValidationWarnings);
+            TrajectoryView = new(session, profile, AnalysisResult);
+            ResultView = new(session, profile, AnalysisResult, ValidationWarnings, NavigateTrajectoryCommand);
             CurrentViewModel = ResultView;
             StatusText = "Analysis complete";
         }

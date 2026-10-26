@@ -8,6 +8,7 @@
             <ResourceDictionary.MergedDictionaries><ResourceDictionary Source="Views/Styles/Controls.xaml" /></ResourceDictionary.MergedDictionaries>
             <DataTemplate DataType="{x:Type vm:ImportSessionViewModel}"><views:ImportSessionView /></DataTemplate>
             <DataTemplate DataType="{x:Type vm:SessionResultViewModel}"><views:SessionResultView /></DataTemplate>
+            <DataTemplate DataType="{x:Type vm:TrajectoryViewModel}"><views:TrajectoryView /></DataTemplate>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

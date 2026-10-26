@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Windows.Input;
 using FPVTrainingAssistant.Models;
 using FPVTrainingAssistant.Services;
 
@@ -6,7 +7,7 @@ namespace FPVTrainingAssistant.ViewModels;
 
 public sealed class SessionResultViewModel : ViewModelBase
 {
-    public SessionResultViewModel(TrainingSession session, ExerciseProfile profile, SessionAnalysisResult result, IReadOnlyList<ValidationIssue> warnings)
+    public SessionResultViewModel(TrainingSession session, ExerciseProfile profile, SessionAnalysisResult result, IReadOnlyList<ValidationIssue> warnings, ICommand? viewTrajectoryCommand = null)
     {
         OperatorId = session.OperatorId;
         SessionId = session.SessionId;
@@ -25,6 +26,8 @@ public sealed class SessionResultViewModel : ViewModelBase
         Recommendations = Array.AsReadOnly(result.Recommendations.OrderBy(r => r.Priority).Select(r => new RecommendationViewModel(r)).ToArray());
         Events = Array.AsReadOnly(session.Events.OrderBy(e => e.TimeSec).Select(e => new EventViewModel(e)).ToArray());
         Warnings = Array.AsReadOnly(warnings.ToArray());
+        ViewTrajectoryCommand = viewTrajectoryCommand ?? new RelayCommand(() => { }, () => false);
+        HasTrajectoryData = session.Telemetry.Count >= 2;
     }
 
     public string OperatorId { get; }
@@ -48,4 +51,6 @@ public sealed class SessionResultViewModel : ViewModelBase
     public bool HasNoMistakes => Mistakes.Count == 0;
     public bool HasNoRecommendations => Recommendations.Count == 0;
     public bool HasNoEvents => Events.Count == 0;
+    public ICommand ViewTrajectoryCommand { get; }
+    public bool HasTrajectoryData { get; }
 }

@@ -15,7 +15,8 @@ public sealed class ExerciseProfileProvider : IExerciseProfileProvider
                 [
                     new(1.5, 3) { SequenceNo = 0, X = 0, Y = 0, Z = 2, PointType = "SyntheticRoute" },
                     new(1.5, 3) { SequenceNo = 1, X = 8, Y = 0, Z = 2, PointType = "SyntheticRoute" },
-                    new(1.5, 3) { SequenceNo = 2, X = 18, Y = 0, Z = 2, PointType = "SyntheticRoute" }
+                    new(1.5, 3) { SequenceNo = 2, X = 8, Y = 8, Z = 2, PointType = "SyntheticRoute" },
+                    new(1.5, 3) { SequenceNo = 3, X = 18, Y = 8, Z = 2, PointType = "SyntheticRoute" }
                 ]), "synthetic-obstacle-course", "Synthetic obstacle course demo"),
             ("synthetic-target-mission", ExerciseTypes.TargetMission) => DemoProfile(
                 DefaultExerciseProfiles.DefaultTargetMission(), "synthetic-target-mission", "Synthetic target mission demo"),

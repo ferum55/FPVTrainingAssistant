@@ -1,4 +1,4 @@
-# FPV Training Assistant — Stage 4 UI guide
+# FPV Training Assistant — UI guide (Stages 4–5)
 
 ## Start the application
 
@@ -20,11 +20,11 @@ action, and a status bar. Shared WPF resources define colors, panels, controls,
 focus feedback, and validation issue presentation. Session content scrolls
 vertically; the shell and navigation remain visible.
 
-| Navigation | Stage 4 behavior |
+| Navigation | Current behavior |
 | --- | --- |
 | Import session | Opens the start/import screen. Choose JSON file or the header Import session action opens the standard Windows picker. Ctrl+O is also bound to import. |
 | Session result | Available after successful analysis; returns to the current result. Disabled before a result exists and during processing. |
-| Trajectory | Disabled; drawing and replay are not implemented. |
+| Trajectory | Enabled after analysis with at least two telemetry samples. Opens top-down replay; also available through View trajectory on Session result. |
 | History | Disabled; no persistence or history storage exists. |
 | Settings | Disabled; no profile editor exists. |
 
@@ -51,6 +51,10 @@ the previous result, so a failed new import cannot display an old score. Moving
 between Import session and Session result otherwise retains the current result.
 This is a single-session workspace, not an in-memory history implementation.
 
+Trajectory navigation keeps the current session. Leaving that screen pauses
+playback. A new import replaces its path/route/time state; cancelling file selection
+does not replace the session. History and Settings remain disabled.
+
 ## Built-in profiles and synthetic route
 
 The provider supports these explicit, case-sensitive version-1 identities:
@@ -65,7 +69,8 @@ The obstacle demo route has ordered points in meters:
 ```text
 SequenceNo 0: (0, 0, 2)
 SequenceNo 1: (8, 0, 2)
-SequenceNo 2: (18, 0, 2)
+SequenceNo 2: (8, 8, 2)
+SequenceNo 3: (18, 8, 2)
 GreenRadiusM = 1.5; YellowRadiusM = 3 at every point
 ```
 
@@ -144,7 +149,9 @@ ViewModels use portable ICommand and are tested without real windows.
 
 App.OnStartup manually constructs dependencies and assigns MainWindow.DataContext.
 The views use ContentControl/DataTemplates for navigation. Code-behind initializes
-views; business logic stays in services. No third-party UI/MVVM/DI packages are used.
+views; TrajectoryView additionally adapts DispatcherTimer/Stopwatch to the portable
+replay ViewModel. TrajectoryMap contains WPF drawing only. Business calculations
+stay in services. No third-party UI/MVVM/DI packages are used.
 
 ## Verification performed for Stage 4
 
@@ -178,10 +185,36 @@ A valid obstacle file was opened again after the failures, confirming recovery.
 Normal and minimum-size layouts, scrolling, and disabled future navigation were
 visually reviewed at 125% Windows display scaling.
 
+## Trajectory and replay (Stage 5)
+
+Open View trajectory on a result or Trajectory in the sidebar. The X/Y map fits
+the recorded path, recommended route, and visible zones without distorting aspect
+ratio. It rescales on resize. +X points right and +Y up; the current marker shows
+yaw. Reference labels identify ordered route points. The right column contains
+current telemetry, existing route metrics when available, and events from the
+previous two seconds; scroll the column to inspect its lower cards.
+
+Use Play/Pause, Restart, Step back/forward, the timeline, and 0.5x/1x/2x speed.
+Seeking and stepping pause playback. Steps use real sample timestamps. Replay
+stops at the last sample without looping; Restart returns to the first sample
+paused. Missing sensor values show Not available. No route is valid and displays
+a clear message while flight replay continues to work.
+
+The visual red band is finite context; analytically every point outside the
+yellow radius is Red. The UI does not rescore the route. See
+[TRAJECTORY_REPLAY.md](TRAJECTORY_REPLAY.md) for projection, interpolation, angular
+wrapping, rendering approximation, controls, verification, and limitations.
+
+Stage 5 verification: 245/245 tests pass and build has 0 warnings/errors, retaining
+all 203 Stage 4 tests. Both valid fixtures have 21 synthetic samples; their scores
+remain 82.67 and 90.00. Live checks covered replay controls/speeds, events, metrics,
+resizing, no-route TargetMission, new-session reset, and a temporary 6000-sample
+path. The Stage 4 verification above remains a record of that delivery.
+
 ## Current limits
 
 Only the current session/result is held in memory; closing the application loses
-it. There is no SQLite, saved history, progress chart, trajectory drawing/replay,
+it. There is no SQLite, saved history, progress chart, video/3D replay,
 profile editing, authentication, or simulator integration/exporter. Imported
 files are read without modification. Built-in profiles support only their exact
 synthetic identities and version 1. Large event/result lists have a straightforward

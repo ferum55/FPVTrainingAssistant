@@ -315,8 +315,19 @@ clearly synthetic obstacle route. It never rewrites session/profile IDs to bypas
 compatibility. Existing import and analysis behavior is unchanged; small service
 interfaces support headless ViewModel tests. UI_GUIDE.md records the workflow,
 profile geometry, live verification, and limitations. Only the current review is
-kept in memory. Trajectory/replay, persistence/history, progress charts, and profile
-editing remain planned; their navigation is disabled.
+kept in memory. At Stage 4, trajectory/replay, persistence/history, progress charts,
+and profile editing remained planned and their navigation was disabled.
+
+Stage 5 adds a top-down X/Y trajectory/recommended-route view, finite layered
+zone context, a current yaw marker, telemetry interpolation, chronological replay,
+sample stepping, timeline seek, 0.5x/1x/2x speeds, and synchronized recent events.
+Route metrics come directly from the existing analysis result. Analytical Red
+remains unbounded; the finite red drawing margin is visual only. Geometry is
+cached and rescales on viewport resize. The synthetic obstacle route has turns
+and the two main demo fixtures have 21 samples each, preserving score expectations.
+TRAJECTORY_REPLAY.md records mapping, angular interpolation, verification, and
+limits. This is neither video nor 3D replay. History, persistence, progress charts,
+and configuration editing remain planned; History/Settings stay disabled.
 
 Repository: https://github.com/ferum55/FPVTrainingAssistant.git
 

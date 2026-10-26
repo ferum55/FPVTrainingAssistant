@@ -4,10 +4,10 @@ The product requirements and boundaries are recorded in [PROJECT_CONTEXT.md](PRO
 Each stage should leave a buildable application. Keep changes small, use MVVM,
 and avoid adding dependencies before they are needed.
 
-Stages 1 through 4 are delivered: the scaffold, domain models, contracts,
-JSON import/validation, deterministic analysis, basic WPF review UI, synthetic
-examples, and focused xUnit tests. Trajectory/replay, persistence, configuration
-editing, and later stages remain planned.
+Stages 1 through 5 are delivered: the scaffold, domain models, contracts,
+JSON import/validation, deterministic analysis, WPF review UI, top-down trajectory
+and telemetry replay, synthetic examples, and focused xUnit tests. Persistence,
+configuration editing, and later stages remain planned.
 
 ## Stage 1 - project structure and models
 
@@ -94,6 +94,17 @@ functionality is included.
 
 Acceptance: recorded and reference paths are visible, route zones are distinct,
 and navigation follows the telemetry chronologically. Video is not required.
+
+Delivered with portable projection/replay/visual-zone services, TrajectoryViewModel,
+a cached native WPF map, real-time clock adapter, timeline/sample stepping,
+0.5x/1x/2x playback, shortest-path angle interpolation, events, existing route metrics,
+and reset/pause behavior across navigation/imports. Two synthetic demo fixtures
+have 21 samples; the obstacle route has turns while existing score expectations
+remain unchanged. TRAJECTORY_REPLAY.md distinguishes analytical unbounded Red
+from finite visual context. Live checks covered both exercises, controls, resize,
+new-session reset, and a temporary 6000-sample path. Stage 5 verification: 0 build
+warnings/errors and 245/245 tests, including all 203 previous tests. No Stage 6+
+features are added.
 
 ## Stage 6 - SQLite persistence/history
 

@@ -1,6 +1,7 @@
 <UserControl x:Class="FPVTrainingAssistant.Views.SessionResultView" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
         <StackPanel Margin="32,28">
+            <Button Content="View trajectory" Command="{Binding ViewTrajectoryCommand}" HorizontalAlignment="Left" Margin="0,0,0,18" ToolTipService.ShowOnDisabled="True" ToolTip="Replay requires at least two telemetry samples." />
             <Border Style="{StaticResource Card}" BorderBrush="{StaticResource WarningBrush}" Margin="0,0,0,20" Visibility="{Binding HasWarnings, Converter={StaticResource BoolVisibility}}">
                 <StackPanel><TextBlock Text="Imported with warnings" Foreground="{StaticResource WarningBrush}" Style="{StaticResource SectionTitle}" /><TextBlock Text="Analysis completed. Review these data-quality notes when interpreting the results." Margin="0,0,0,14" /><ItemsControl ItemsSource="{Binding Warnings}" ItemTemplate="{StaticResource ValidationIssueTemplate}" /></StackPanel>
             </Border>

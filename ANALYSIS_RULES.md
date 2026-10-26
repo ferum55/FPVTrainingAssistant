@@ -216,15 +216,18 @@ The generic obstacle template has **no course route** and cannot be analyzed
 with its enabled RouteAdherence until the caller supplies the actual reference
 points (optional factory argument) or explicitly disables/removes that criterion.
 No course geometry is assumed. Tests use dedicated synthetic route/profile
-builders; existing JSON fixtures are unchanged and do not claim simulator exports.
+builders. Stage 5 expands the two demonstration trajectories and updates synthetic
+course geometry while preserving their expected final scores. These fixtures
+do not claim simulator exports.
 
 ## Current limitations and verification
 
 The rules are deterministic prototype assessment rules, not adaptive AI. Only
 the eight named rules and two exercises are implemented in the engine. Stage 4
 layers a WPF review UI and a small built-in synthetic profile provider over this
-engine; see UI_GUIDE.md. A profile editor, route rendering/replay, SQLite, historical
-reanalysis, and persistence remain unimplemented. Profile version and configuration
+engine; Stage 5 adds top-down route drawing and telemetry replay without changing
+these formulas (see UI_GUIDE.md and TRAJECTORY_REPLAY.md). A profile editor,
+SQLite, historical reanalysis, and persistence remain unimplemented. Profile version and configuration
 snapshots still need storage in Stage 6. Course-specific expected checkpoints,
 target identity reconciliation, continuous path extrema, and missing-telemetry
 coverage penalties are not inferred.
