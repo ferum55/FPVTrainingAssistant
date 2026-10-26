@@ -179,16 +179,19 @@ The existing 2D services, angle/position interpolation and route calculations ar
 unchanged. Both supported contract versions 1.0 and 1.1 supply the same required
 flight samples. New nullable telemetry and ReplayContext/entity tracks are retained
 and validated, but do not alter 2D paths, route scores or interpolation results.
-The local view does not render dynamic entities or additional sensor/camera fields.
+The original analytical view does not render dynamic entities or additional
+sensor/camera fields. Stage 5.5B adds a separate simulator-interface mock that uses
+the same replay service/controller, now with extended optional sensors in ReplayState.
 
 Session result also offers Open 3D Replay, independently of View trajectory. It
-checks drone data, replay environment, source file and configured executable,
-then hands that same physical file to an external simulator using ArgumentList.
-Missing configuration/context/file is shown in-app and leaves local replay usable.
+now opens the interactive local mock for a 1.1 session with replay environment
+and at least two drone samples. Source files/executables are not required after
+import. The external handoff implementation is retained for future production wiring.
+Missing preview context is shown in-app and leaves local replay usable.
 No absolute source path is serialized into the session. No 3D renderer, video,
 Unreal library, physics or AI resimulation is added to the assistant.
 
-Future Stage 5.5B in DroneDiploma must implement the documented CLI, neutral
+Future production integration in DroneDiploma must implement the documented CLI, neutral
 environment/visual lookup, recorded drone/entity transforms and discrete states,
 FPV with body-relative tilt and horizontal FOV, third-person camera, minimap,
 event log and synchronized timeline. Conceptual position interpolation remains
@@ -196,7 +199,10 @@ linear and angle interpolation follows the same shortest normalized difference;
 normal gameplay AI/physics must not drive recorded replay actors.
 [REPLAY_INTEGRATION.md](REPLAY_INTEGRATION.md) specifies responsibilities, partial
 coverage/default questions and source-unit mapping. These simulator features are
-not implemented or claimed to exist in the current simulator.
+not implemented or claimed to exist in the current simulator. Stage 5.5B implements
+only the interface mock; see MOCK_SIMULATOR_REPLAY.md for its actual-data workflow,
+entity/minimap rules, event presentation and live verification. The main trajectory
+state is independent of the mock's playback controller.
 
 The new replay_obstacle_course_v1_1.json and replay_target_mission_v1_1.json fixtures
 each add synthetic context, extended telemetry and one moving track to the existing
@@ -227,5 +233,9 @@ FPS guarantee. That temporary file is outside the repository, not a Stage 8 fixt
 
 Rendering approximates buffers near bends and varying radii. There is no video,
 3D drone/terrain, zoom/pan editor, infinite red polygon, or saved replay state.
-Missing telemetry coverage is not extrapolated. All replay state is in memory;
-imported files remain unchanged. Stage 6/7 functionality remains unimplemented.
+Missing telemetry coverage is not extrapolated. Current playback position stays
+in memory; imported files remain unchanged. Stage 6 now stores sessions, telemetry,
+versioned profiles and result/route snapshots in SQLite. History reconstructs this
+same view without rescoring or the original file. The 1.1 mock also works from saved
+data after a complete restart. See PERSISTENCE_HISTORY.md for verification and
+schema. Stage 7 editing remains unimplemented.

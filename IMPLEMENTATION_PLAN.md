@@ -4,11 +4,13 @@ The product requirements and boundaries are recorded in [PROJECT_CONTEXT.md](PRO
 Each stage should leave a buildable application. Keep changes small, use MVVM,
 and avoid adding dependencies before they are needed.
 
-Stages 1 through 5 and Stage 5.5A are delivered: the scaffold, domain models, contracts,
+Stages 1 through 6, including Stages 5.5A/5.5B, are delivered: the scaffold, domain models, contracts,
 JSON import/validation, deterministic analysis, WPF review UI, top-down trajectory
 and telemetry replay, replay-capable contract 1.1, assistant-side simulator handoff,
-synthetic examples, and focused xUnit tests. Simulator-side Stage 5.5B, persistence,
-configuration editing, and later stages remain planned.
+an interactive simulator-interface mock, synthetic examples, and focused xUnit tests.
+SQLite snapshots, operator metadata, history/reopening and native score progress
+are also delivered. Real simulator integration, configuration editing and later
+stages remain planned.
 
 ## Stage 1 - project structure and models
 
@@ -126,7 +128,31 @@ Obstacle/target scores remain 82.67/90.00; analysis services and local 2D replay
 algorithms are unchanged. No simulator modifications, 3D renderer, exporter,
 database, network or settings editor are included.
 
-## Stage 5.5B - simulator-side replay integration (future, separate repository)
+## Stage 5.5B - mock simulator replay prototype (delivered)
+
+The laboratory scope replaces the previously planned real simulator integration
+with a local interactive WPF preview. DroneDiploma is not changed or launched.
+
+- Inject MockSimulatorReplayLauncher through ISimulatorReplayLauncher; preserve
+  the tested external launcher for future production use.
+- Distinguish loaded Contract 1.1 preview capability from external file/executable
+  availability; no simulator configuration is required for the mock.
+- Open one Simulator Replay Prototype window with real imported metadata/counts,
+  technical FPV and Third Person views, a compact collapsible minimap and event log.
+- Reuse existing telemetry/playback services and time semantics; extend ReplayState
+  with optional sensors. Interpolate entities using the shared angle/position rules.
+- Support play/pause, restart, sample steps, seek and 0.5x/1x/2x. Preserve state
+  when switching cameras/panels, and detach the clock/subscriptions on close.
+- Keep Contract 1.0 analysis and 2D replay available with a clear preview limitation.
+
+Acceptance met: both replay fixtures open; actual telemetry/entities/events follow
+the selected time. Build: 0 warnings/errors; 364/364 tests, retaining all 320 previous
+cases. Live WPF checks covered cameras, controls/speeds, panels, single-window
+activation, safe close and both exercise types. MOCK_SIMULATOR_REPLAY.md records
+architecture, entity/state rules, real-versus-mocked data and the demonstration.
+No Stage 6 work is included.
+
+## Future production simulator integration (separate repository)
 
 - Parse and independently validate the replay command/file in DroneDiploma.
 - Resolve neutral environment/scenario/archetype IDs to local maps and visuals.
@@ -144,9 +170,10 @@ database, network or settings editor are included.
 
 Acceptance: the separate simulator reconstructs the recorded scene and views
 without gameplay resimulation; normal simulator mode remains separate. This is
-not implemented by Stage 5.5A. REPLAY_INTEGRATION.md defines the precise handoff.
+not implemented by the laboratory mock. REPLAY_INTEGRATION.md retains the precise
+handoff and conceptual source-unit mapping.
 
-## Stage 6 - SQLite persistence/history
+## Stage 6 - SQLite persistence/history (delivered)
 
 - Add a suitable SQLite provider and a local database behind Data services.
 - Create the nine required tables with foreign keys and clear initialization.
@@ -159,6 +186,21 @@ not implemented by Stage 5.5A. REPLAY_INTEGRATION.md defines the precise handoff
 
 Acceptance: imported results survive restart, operators' histories remain
 separate, old sessions reopen, and score progress is visible.
+
+Delivered with Microsoft.Data.Sqlite 10.0.14, a per-user LocalAppData database,
+schema_version=1, fifteen relational application tables, per-connection foreign
+keys, WAL, atomic complete saves and nonfatal duplicate/failure results. Versioned
+profiles and stored analysis snapshots are retained without automatic reanalysis.
+History supports operator name/notes, scoped/filterable sessions, existing result/
+trajectory/mock views and fixed 0..100 native WPF progress. Source paths are never
+persisted. Import/analysis remain usable when initialization fails.
+
+Verification: 0 build warnings/errors; 395/395 tests including all 364 previous
+cases. Fresh storage, both contract versions, duplicates, multiple score sessions,
+operator metadata, full process restart and both persisted replay views were
+checked in WPF. Read-only database inspection confirmed counts/foreign-key joins.
+PERSISTENCE_HISTORY.md records the schema, policies, async rationale, demonstration
+and limits. Stage 7 settings/profile editing remains unimplemented.
 
 ## Stage 7 - configuration
 

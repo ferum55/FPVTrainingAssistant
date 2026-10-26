@@ -1,4 +1,4 @@
-# Replay integration — Stage 5.5A
+# Replay integration — Stages 5.5A, 5.5B and 6
 
 ## Architecture and delivery boundary
 
@@ -15,7 +15,16 @@ process launch and the Open 3D Replay action. The assistant remains independent
 of Unreal Engine. It imports no Unreal code/assets and renders no 3D environment.
 No changes to DroneDiploma, IPC, network, SQLite or Settings UI are included.
 The current DroneDiploma build is **not claimed to export this JSON or implement
-the replay launch protocol**. Simulator-side work is Stage 5.5B below.
+the replay launch protocol**.
+
+Stage 5.5B changes the laboratory delivery to an interactive WPF mock inside the
+assistant. Open 3D Replay now opens Simulator Replay Prototype using the actual
+loaded data through MockSimulatorReplayLauncher; no executable installation,
+environment variable or external process is needed. This is a prototype of the
+external interface, without 3D rendering. The real SimulatorReplayLauncher and
+its tested protocol are retained for future production integration, not selected
+by the laboratory application. [MOCK_SIMULATOR_REPLAY.md](MOCK_SIMULATOR_REPLAY.md)
+documents implemented behavior and verification. DroneDiploma remains unchanged.
 
 ## Supported contracts and recorded data
 
@@ -45,9 +54,10 @@ New nullable telemetry fields are:
 Every supplied numeric value must be finite. Omitted/null means unavailable,
 never a fabricated zero. Existing required telemetry and optional percentage
 validation are unchanged. Additional telemetry, replay context and entity tracks
-do not enter scoring or recommendation formulas. The current 2D replay continues
-to use its original interpolated state; it does not visualize dynamic entities
-or expose the new sensors as additional UI metrics.
+do not enter scoring or recommendation formulas. Stage 5's analytical screen
+retains its existing UI. The same TelemetryReplayService now exposes interpolated
+extended sensors in ReplayState for the mock HUD/telemetry panel; the mock also
+shows recorded dynamic entities on its compact minimap.
 
 ## Neutral environment and dynamic entities
 
@@ -90,24 +100,38 @@ ReplayCapabilityService evaluates a validated session plus local runtime paths:
 | HasEnvironment | Replay context with nonblank neutral EnvironmentId. |
 | HasDynamicEntityTracks | At least one track satisfying track/sample validation. |
 | CanLaunchSimulatorReplay | Drone data and environment, existing source file, and configured existing executable. Dynamic tracks are optional. |
-| Limitations | Read-only reasons for missing drone data, environment, file or configuration. |
+| CanLaunchExternalSimulator | Alias of the retained external CanLaunchSimulatorReplay result. |
+| CanPreviewReplay | Contract 1.1, drone data and environment. Requires neither a file nor an executable after import. |
+| Limitations / PreviewLimitations | Separate read-only external handoff and local preview reasons. |
 
 Successful import stores the normalized absolute source file path on
 SessionImportResult.SourceFilePath and MainViewModel.SourceFilePath. It is never
 embedded in TrainingSession JSON. New imports reset this path, capability and
 launch status; failed imports expose no launchable result. A cancelled picker
 preserves the current review. Availability is checked again when the action runs,
-so a removed file or executable is handled without losing analysis/2D playback.
+so external handoff can handle removed files/executables without losing analysis.
+The local mock works from already loaded data and is independent of those files.
+Stage 6 persists telemetry, replay contexts and entity tracks/samples in SQLite,
+so a historical session stays preview-capable after application restart. Opening
+history reconstructs the same active session/profile/analysis state, with no
+SourceFilePath. The absolute original JSON path is never stored in SQLite.
 
 The launcher passes the original file and never rewrites it. Assistant angle
 normalization/event sorting occur only in memory. A future simulator consumer
 must independently parse, validate and normalize the physical input file, rather
 than assume it contains the assistant's normalized in-memory representation.
-File existence is local availability, not proof that a particular simulator build
-understands an environment, archetype or protocol. Source files must remain
-accessible; no private copy, hash snapshot or persistence is added in this stage.
+For future external handoff, file existence is local availability, not proof that a particular simulator build
+understands an environment, archetype or protocol. External handoff requires the
+source to remain accessible; mock preview does not. No private copy, hash snapshot
+or source-file persistence is added. Stage 6 stores the neutral domain/result data
+instead; see PERSISTENCE_HISTORY.md.
 
-## Launch protocol and local configuration
+## Future external launch protocol and local configuration
+
+This section describes the preserved production launcher. The Stage 5.5B laboratory
+application does not select it or start a simulator. No configuration is needed
+for the mock. Future production wiring can inject SimulatorReplayLauncher through
+the same ISimulatorReplayLauncher interface instead of MockSimulatorReplayLauncher.
 
 Set FPVTRAINING_SIMULATOR_EXE to the full executable path before starting the
 assistant. For example, in PowerShell for the current terminal and its children:
@@ -140,20 +164,24 @@ not confirmation that the simulator successfully loaded a replay.
 
 ## Instructor-facing action
 
-Session result contains separate View trajectory and Open 3D Replay buttons.
-The first opens the existing local 2D screen. The second is unavailable before a
-result is loaded and during import. Once a result exists it can be clicked to
-explain limitations, even if launch capability is false. In-app status shows:
+Session result contains separate View trajectory and Open 3D Replay buttons,
+with a Prototype hint. The first opens the existing local 2D screen. The second
+opens the interactive mock and is unavailable before a result is loaded or during
+import. It uses CanPreviewReplay, not external executable availability. In-app
+messages explain missing Contract 1.1 replay context, environment or drone data.
+A 1.0 analytical session still works normally, but cannot open the mock preview.
 
-- Missing environment: "This session does not contain the environment information required for 3D replay."
-- Missing configuration: "Simulator executable is not configured."
-- Missing/deleted source: "The source replay file is no longer available."
-- Removed configured executable: "The configured simulator executable is no longer available."
+The mock shows actual session/environment/scenario IDs and sample/event/entity
+counts. FPV/Third Person selectors, play/pause/restart/steps, seek and 0.5x/1x/2x
+drive the shared replay engine. Optional minimap and chronological event panels
+collapse when hidden. Entity transforms are recorded/interpolated, never AI-driven.
+Reopening activates the existing window; closing stops its timer without resetting
+the main trajectory state. The status explicitly reports a replay prototype.
 
-When several prerequisites are missing, the first limitation is shown (drone data,
-environment, source, then executable configuration/availability). The full list
-remains on ReplayCapability. A launch attempt preserves the current result; local
-playback is paused before starting an external simulator. Errors remain nonfatal.
+Future external wiring still uses separate CanLaunchExternalSimulator and the
+preserved messages for missing configuration, source or executable. Those reasons
+do not disable a valid loaded mock preview. No real simulator is launched in
+laboratory mode.
 
 ## Conceptual DroneDiploma exporter mapping (future)
 
@@ -186,9 +214,11 @@ to already be m/s. Simulator rotations must not be blindly copied with an
 unverified handedness or sign. Convert source vertical FOV if necessary to the
 contract's horizontal FOV. Missing values stay absent/null.
 
-## Exact remaining Stage 5.5B responsibilities in DroneDiploma
+## Remaining future production responsibilities in DroneDiploma
 
-Future work belongs in the separate simulator repository and is not performed here:
+The original planned simulator-side Stage 5.5B was replaced for the laboratory
+by the local mock. Real production work still belongs in the separate simulator
+repository and is not performed here:
 
 1. Parse `-ReplayMode` and the single `-ReplayFile=<absolute path>` argument;
    load and independently validate supported 1.0/1.1 input, reporting unsupported
@@ -246,7 +276,19 @@ absent it showed the exact missing-configuration message in-app. The unchanged
 View trajectory still opened the local screen with Play, Restart and sample-step
 controls. No external simulator was launched during this check.
 
+Stage 5.5B verification: build has 0 warnings/errors and all 364 tests pass,
+retaining the 320 Stage 5.5A cases above. The real WPF mock was checked for both
+1.1 fixtures, cameras, playback controls/speeds, synchronized events/entities,
+collapsible panels, single-window activation and safe close. A 1.0 fixture retained
+analysis/2D replay and showed the explicit preview limitation. Details are in
+MOCK_SIMULATOR_REPLAY.md. No real simulator was launched.
+
 The assistant cannot prove that a configured simulator understands the protocol.
-Actual FPV/third-person 3D replay, entity rendering, minimap and simulator event
-log/timeline remain Stage 5.5B. The assistant retains only the current session in
-memory; Stage 6 persistence/history and Stage 7 editing remain future work.
+Actual 3D FPV/third-person rendering in DroneDiploma remains planned. The implemented
+mock demonstrates the interface and real data workflow only. The assistant retains
+the current preview position in memory while Stage 6 retains session/profile/result
+and replay data in SQLite. Both local replay views can reopen from History. Future
+external simulator handoff may first require exporting a contract file from the
+stored data, because no original source path is retained. That export and Stage 7
+editing remain future work. Stage 6 verification is 395/395 tests and a successful
+full-process restart demonstration; PERSISTENCE_HISTORY.md records the details.

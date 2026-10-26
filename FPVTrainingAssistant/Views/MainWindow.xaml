@@ -26,9 +26,9 @@
                     <Button Content="Import session" Style="{StaticResource NavigationButton}" Command="{Binding NavigateImportCommand}" Tag="{Binding IsImportScreen}" />
                     <Button Content="Session result" Style="{StaticResource NavigationButton}" Command="{Binding NavigateResultCommand}" Tag="{Binding IsResultScreen}" />
                     <Button Content="Trajectory" Style="{StaticResource NavigationButton}" Command="{Binding NavigateTrajectoryCommand}" Tag="{Binding IsTrajectoryScreen}" />
+                    <Button Content="History" Style="{StaticResource NavigationButton}" Command="{Binding NavigateHistoryCommand}" Tag="{Binding IsHistoryScreen}" />
                     <Border Height="1" Background="{StaticResource BorderBrush}" Margin="12,14,12,18" />
                     <TextBlock Text="COMING LATER" Style="{StaticResource MutedText}" FontSize="10" Margin="14,0,0,12" />
-                    <Button Content="History" Style="{StaticResource NavigationButton}" IsEnabled="False" ToolTipService.ShowOnDisabled="True" ToolTip="History will be available after local storage is enabled." />
                     <Button Content="Settings" Style="{StaticResource NavigationButton}" IsEnabled="False" ToolTipService.ShowOnDisabled="True" ToolTip="Profile configuration is not available yet." />
                 </StackPanel>
             </DockPanel>
@@ -41,9 +41,12 @@
                     <StackPanel><TextBlock Text="OPERATOR TRAINING" Style="{StaticResource MutedText}" FontSize="10" /><TextBlock Text="{Binding ScreenTitle}" FontSize="26" FontWeight="SemiBold" Margin="0,4,0,0" /></StackPanel>
                 </DockPanel>
             </Border>
-            <Border Grid.Row="1" Style="{StaticResource Card}" BorderBrush="{StaticResource WarningBrush}" Margin="32,12,32,0" Visibility="{Binding HasReplayLaunchMessage, Converter={StaticResource BoolVisibility}}">
+            <StackPanel Grid.Row="1">
+            <Border Style="{StaticResource Card}" Padding="14,9" Margin="32,10,32,0" Visibility="{Binding HasStorageMessage, Converter={StaticResource BoolVisibility}}"><TextBlock Text="{Binding StorageMessage}" FontSize="12" AutomationProperties.LiveSetting="Polite" /></Border>
+            <Border Style="{StaticResource Card}" BorderBrush="{StaticResource WarningBrush}" Margin="32,12,32,0" Visibility="{Binding HasReplayLaunchMessage, Converter={StaticResource BoolVisibility}}">
                 <TextBlock Text="{Binding ReplayLaunchMessage}" TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite" />
             </Border>
+            </StackPanel>
             <ContentControl Grid.Row="2" Content="{Binding CurrentViewModel}" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" />
             <Border Grid.Row="3" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0" Padding="32,11"><DockPanel><TextBlock Text="JSON session review" DockPanel.Dock="Right" Style="{StaticResource MutedText}" /><TextBlock Text="{Binding StatusText}" Style="{StaticResource MutedText}" /></DockPanel></Border>
         </Grid>

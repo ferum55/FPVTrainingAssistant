@@ -340,20 +340,74 @@ changing scoring, recommendations or existing 2D replay algorithms.
 
 ReplayCapabilityService reports drone, environment and dynamic-track availability
 plus local launch prerequisites. Successful imports retain the absolute source
-path only in runtime SessionImportResult/MainViewModel state. Open 3D Replay on
-Session result uses FPVTRAINING_SIMULATOR_EXE and safely passes the original file
+path only in runtime SessionImportResult/MainViewModel state. At Stage 5.5A, Open
+3D Replay used FPVTRAINING_SIMULATOR_EXE and safely passed the original file
 as `-ReplayMode` and `-ReplayFile=<absolute path>`. Missing prerequisites produce
 nonfatal in-app messages; View trajectory still opens local 2D replay. Two synthetic
 1.1 fixtures coexist with unchanged 1.0 fixtures. Verification: 320/320 tests,
 0 build warnings/errors; obstacle/target scores remain 82.67/90.00.
 
 [REPLAY_INTEGRATION.md](REPLAY_INTEGRATION.md) specifies conceptual source mapping
-and future Stage 5.5B in the separate DroneDiploma repository: CLI/file validation,
+and future production work in the separate DroneDiploma repository: CLI/file validation,
 neutral map/visual lookup, recorded transforms/states instead of gameplay AI/physics,
 FPV with body-relative camera tilt/horizontal FOV, third person, minimap, event log,
 and synchronized timeline. No simulator code/exporter or 3D rendering is implemented
 here. Static worlds remain simulator-owned; source paths stay outside JSON.
 Stage 6 persistence/history and Stage 7 configuration editing remain planned.
+
+Stage 5.5B changes the laboratory scope to an interactive simulator replay mock
+inside FPVTrainingAssistant. App startup injects MockSimulatorReplayLauncher via
+the preserved ISimulatorReplayLauncher. Open 3D Replay opens one clearly labeled
+Simulator Replay Prototype window with real session metadata, telemetry, events
+and recorded entities. It offers technical FPV/Third Person presentations,
+play/pause/restart/steps/seek, 0.5x/1x/2x, a collapsible trajectory/entity minimap
+and a chronological event log with occurred/upcoming/latest presentation states.
+There is no real 3D world, Unreal integration, simulator process, AI or physics.
+
+The mock reuses the Stage 5 playback controller/TelemetryReplayService; ReplayState
+now exposes extended optional sensor values. Drone and entity transforms share
+linear position and shortest-path angle interpolation. Entities are unavailable
+before their first sample; afterwards recorded IsActive governs marker visibility
+while State remains informational. The final state is held after the last sample.
+CanPreviewReplay requires Contract 1.1 context/environment and at least two drone
+samples, independently of physical file/executable availability. Contract 1.0
+analysis and 2D replay continue with a clear preview limitation. Closing a mock
+stops its timer and does not reset the main trajectory. Reopening the same active
+session activates its existing window instead of creating duplicates.
+
+[MOCK_SIMULATOR_REPLAY.md](MOCK_SIMULATOR_REPLAY.md) documents the laboratory
+positioning, actual versus mocked data, rules and live demonstration. Verification:
+364/364 tests including all 320 previous cases, 0 build warnings/errors, unchanged
+82.67/90.00 analysis scores. Both 1.1 fixtures and a 1.0 session were checked in
+the running WPF application. The external SimulatorReplayLauncher and
+`-ReplayMode -ReplayFile=<absolute path>` protocol remain tested future production
+components; the laboratory app uses no FPVTRAINING_SIMULATOR_EXE configuration.
+DroneDiploma remains unchanged and unlaunched. At the end of Stage 5.5B, persistence
+was still planned.
+
+Stage 6 adds Microsoft.Data.Sqlite 10.0.14 persistence at the per-user
+LocalAppData/FPVTrainingAssistant/assistant.db path, schema version 1, fifteen
+relational application tables, per-connection foreign keys and WAL. Import now
+automatically saves the validated analysis snapshot atomically, including operator,
+versioned profile, all telemetry/events, criterion results, mistakes/recommendations,
+route analysis and 1.1 replay data. Duplicates are reported without overwriting;
+storage failures retain the current analyzed result. Source JSON paths stay runtime-only.
+
+History navigation is enabled after initialization and supports operator selection,
+optional display name/notes editing, scoped newest-first session lists, exercise
+filtering, count/average/best/latest statistics and native fixed-0..100 progress.
+Opening history reconstructs the existing result/trajectory/mock views directly
+from saved snapshots without calling SessionAnalyzer. The exact profile version
+is retained; same-version configuration conflicts fail saving rather than change
+history. Initialization failure leaves import/analysis usable with a visible warning.
+
+[PERSISTENCE_HISTORY.md](PERSISTENCE_HISTORY.md) documents schema, transactions,
+version policy, local storage, fallback and manual restart verification. Build has
+0 warnings/errors; all 395 tests pass, retaining the previous 364. A complete WPF
+shutdown/restart preserved result, operator metadata, 2D trajectory and 1.1 mock
+replay. Three new synthetic progress fixtures produce 56.00/82.67/100.00 through
+their events; established obstacle/target scores remain 82.67/90.00. No scoring
+formula changed. Stage 7 settings/profile editing remains planned.
 
 Repository: https://github.com/ferum55/FPVTrainingAssistant.git
 

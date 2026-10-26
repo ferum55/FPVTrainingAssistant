@@ -9,6 +9,7 @@
             <DataTemplate DataType="{x:Type vm:ImportSessionViewModel}"><views:ImportSessionView /></DataTemplate>
             <DataTemplate DataType="{x:Type vm:SessionResultViewModel}"><views:SessionResultView /></DataTemplate>
             <DataTemplate DataType="{x:Type vm:TrajectoryViewModel}"><views:TrajectoryView /></DataTemplate>
+            <DataTemplate DataType="{x:Type vm:HistoryViewModel}"><views:HistoryView /></DataTemplate>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

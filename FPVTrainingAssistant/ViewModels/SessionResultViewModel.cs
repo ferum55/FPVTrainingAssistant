@@ -7,9 +7,10 @@ namespace FPVTrainingAssistant.ViewModels;
 
 public sealed class SessionResultViewModel : ViewModelBase
 {
-    public SessionResultViewModel(TrainingSession session, ExerciseProfile profile, SessionAnalysisResult result, IReadOnlyList<ValidationIssue> warnings, ICommand? viewTrajectoryCommand = null, ICommand? open3DReplayCommand = null)
+    public SessionResultViewModel(TrainingSession session, ExerciseProfile profile, SessionAnalysisResult result, IReadOnlyList<ValidationIssue> warnings, ICommand? viewTrajectoryCommand = null, ICommand? open3DReplayCommand = null, string origin = "Imported session")
     {
         OperatorId = session.OperatorId;
+        Origin = origin;
         SessionId = session.SessionId;
         ExerciseType = DisplayText.Name(session.ExerciseType);
         SourceSimulator = session.SourceSimulator;
@@ -32,6 +33,7 @@ public sealed class SessionResultViewModel : ViewModelBase
     }
 
     public string OperatorId { get; }
+    public string Origin { get; }
     public string SessionId { get; }
     public string ExerciseType { get; }
     public string SourceSimulator { get; }

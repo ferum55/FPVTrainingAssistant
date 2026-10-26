@@ -1,0 +1,52 @@
+<UserControl x:Class="FPVTrainingAssistant.Views.HistoryView" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:controls="clr-namespace:FPVTrainingAssistant.Views.Controls" Language="en-US">
+    <UserControl.Resources>
+        <Style TargetType="DataGridColumnHeader"><Setter Property="Background" Value="{StaticResource PanelBrush}" /><Setter Property="Foreground" Value="{StaticResource MutedBrush}" /><Setter Property="Padding" Value="9" /><Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" /></Style>
+        <Style TargetType="TextBox"><Setter Property="Background" Value="{StaticResource InsetBrush}" /><Setter Property="Foreground" Value="{StaticResource TextBrush}" /><Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" /><Setter Property="Padding" Value="8" /><Setter Property="CaretBrush" Value="{StaticResource TextBrush}" /></Style>
+    </UserControl.Resources>
+    <Grid Margin="24,18">
+        <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="*" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+        <DockPanel Margin="0,0,0,12">
+            <Button DockPanel.Dock="Right" Content="Refresh" Command="{Binding RefreshCommand}" Padding="12,7" />
+            <StackPanel><TextBlock Text="Operator" Style="{StaticResource MutedText}" Margin="0,0,0,5" />
+                <ComboBox ItemsSource="{Binding Operators}" SelectedItem="{Binding SelectedOperator, Mode=TwoWay}" MinWidth="300" MaxWidth="650" HorizontalAlignment="Left" IsEnabled="{Binding CanInteract}" AutomationProperties.Name="History operator"><ComboBox.ItemTemplate><DataTemplate><StackPanel><TextBlock Text="{Binding Label}" Foreground="Black" /><TextBlock Text="{Binding Summary}" Foreground="#40505C" FontSize="10" /></StackPanel></DataTemplate></ComboBox.ItemTemplate></ComboBox>
+            </StackPanel>
+        </DockPanel>
+        <Expander Grid.Row="1" Header="Operator details" Foreground="{StaticResource TextBrush}" Margin="0,0,0,12" IsEnabled="{Binding HasOperators}">
+            <Grid Margin="0,10,0,0" IsEnabled="{Binding CanInteract}"><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="2*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                <StackPanel Margin="0,0,12,0"><TextBlock Text="{Binding SelectedOperatorId}" Style="{StaticResource MutedText}" /><TextBlock Text="Display name (optional)" FontSize="12" Margin="0,6,0,4" /><TextBox Text="{Binding DisplayName, UpdateSourceTrigger=PropertyChanged}" AutomationProperties.Name="Operator display name" /></StackPanel>
+                <StackPanel Grid.Column="1" Margin="0,0,12,0"><TextBlock Text="Notes (optional)" FontSize="12" Margin="0,0,0,4" /><TextBox Text="{Binding Notes, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" TextWrapping="Wrap" Height="65" VerticalScrollBarVisibility="Auto" AutomationProperties.Name="Operator notes" /></StackPanel>
+                <Button Grid.Column="2" Content="Save operator details" Command="{Binding SaveOperatorCommand}" VerticalAlignment="Bottom" Padding="12,9" />
+            </Grid>
+        </Expander>
+        <Grid Grid.Row="2" Margin="0,0,0,12"><Grid.ColumnDefinitions><ColumnDefinition /><ColumnDefinition /><ColumnDefinition /><ColumnDefinition /></Grid.ColumnDefinitions>
+            <StackPanel><TextBlock Text="SESSIONS" Style="{StaticResource MutedText}" FontSize="10" /><TextBlock Text="{Binding SessionCountText}" FontSize="23" FontWeight="SemiBold" /></StackPanel>
+            <StackPanel Grid.Column="1"><TextBlock Text="AVERAGE SCORE" Style="{StaticResource MutedText}" FontSize="10" /><TextBlock Text="{Binding AverageScoreText}" FontSize="23" Foreground="{StaticResource AccentBrush}" /></StackPanel>
+            <StackPanel Grid.Column="2"><TextBlock Text="BEST SCORE" Style="{StaticResource MutedText}" FontSize="10" /><TextBlock Text="{Binding BestScoreText}" FontSize="23" /></StackPanel>
+            <StackPanel Grid.Column="3"><TextBlock Text="LATEST SCORE" Style="{StaticResource MutedText}" FontSize="10" /><TextBlock Text="{Binding LatestScoreText}" FontSize="23" /></StackPanel>
+        </Grid>
+        <DockPanel Grid.Row="3" Margin="0,0,0,10"><Button DockPanel.Dock="Right" Content="Open Result" Command="{Binding OpenResultCommand}" Style="{StaticResource PrimaryButton}" Padding="14,8"><Button.ContentTemplate><DataTemplate><TextBlock Text="{Binding}" Foreground="#0B2725" /></DataTemplate></Button.ContentTemplate></Button>
+            <StackPanel Orientation="Horizontal"><TextBlock Text="Exercise" VerticalAlignment="Center" Margin="0,0,12,0" /><ComboBox ItemsSource="{Binding ExerciseFilters}" SelectedItem="{Binding SelectedExercise, Mode=TwoWay}" Width="190" VerticalContentAlignment="Center" IsEnabled="{Binding CanInteract}" AutomationProperties.Name="History exercise filter"><ComboBox.ItemTemplate><DataTemplate><TextBlock Text="{Binding}" Foreground="Black" /></DataTemplate></ComboBox.ItemTemplate></ComboBox></StackPanel>
+        </DockPanel>
+        <Grid Grid.Row="4"><TextBlock Text="{Binding EmptyMessage}" Foreground="{StaticResource MutedBrush}" VerticalAlignment="Center" HorizontalAlignment="Center" Visibility="{Binding HasNoSessions, Converter={StaticResource BoolVisibility}}" />
+            <DataGrid ItemsSource="{Binding Sessions}" SelectedItem="{Binding SelectedSession, Mode=TwoWay}" Visibility="{Binding HasSessions, Converter={StaticResource BoolVisibility}}" IsEnabled="{Binding CanInteract}" IsReadOnly="True" AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False" CanUserSortColumns="False" HeadersVisibility="Column" SelectionMode="Single" Background="{StaticResource InsetBrush}" Foreground="{StaticResource TextBrush}" RowBackground="{StaticResource PanelBrush}" AlternatingRowBackground="{StaticResource InsetBrush}" BorderBrush="{StaticResource BorderBrush}" GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="{StaticResource BorderBrush}" RowHeight="36" AutomationProperties.Name="Session history">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Date/time (local)" Binding="{Binding LocalDate}" Width="145" />
+                    <DataGridTextColumn Header="Exercise" Binding="{Binding ExerciseType}" Width="125" />
+                    <DataGridTextColumn Header="Session ID" Binding="{Binding SessionId}" Width="*" MinWidth="160" />
+                    <DataGridTextColumn Header="Seconds" Binding="{Binding DurationSec, StringFormat=F1}" Width="75" />
+                    <DataGridTextColumn Header="Assistant" Binding="{Binding AssistantScore, StringFormat=F2}" Width="85" />
+                    <DataGridTextColumn Header="Simulator" Binding="{Binding SimulatorScore, StringFormat=F2, TargetNullValue=N/A}" Width="85" />
+                    <DataGridTextColumn Header="Outcome" Binding="{Binding Outcome}" Width="100" />
+                </DataGrid.Columns>
+            </DataGrid>
+        </Grid>
+        <StackPanel Grid.Row="5" Margin="0,12,0,0">
+            <TextBlock Text="Loading history..." Style="{StaticResource MutedText}" Visibility="{Binding IsBusy, Converter={StaticResource BoolVisibility}}" />
+            <TextBlock Text="{Binding Message}" Foreground="{StaticResource WarningBrush}" Visibility="{Binding HasMessage, Converter={StaticResource BoolVisibility}}" />
+            <Border Style="{StaticResource Card}" Padding="12" Visibility="{Binding HasSessions, Converter={StaticResource BoolVisibility}}"><StackPanel>
+                <TextBlock Text="{Binding SelectedExercise, StringFormat=Assistant score progress · {0}}" FontWeight="SemiBold" FontSize="12" />
+                <controls:ScoreProgressChart Points="{Binding ProgressPoints}" Height="140" AutomationProperties.Name="Assistant score progress" />
+            </StackPanel></Border>
+        </StackPanel>
+    </Grid>
+</UserControl>

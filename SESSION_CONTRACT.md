@@ -141,8 +141,12 @@ supplied. Existing required telemetry and percentage rules are unchanged.
 | armed | boolean? | Drone armed state. |
 
 These fields describe recorded state and never add implicit scoring rules.
-The existing 2D replay still interpolates its original telemetry fields; the
-new sensors and camera parameters are retained for future consumers.
+The existing 2D screen retains its original presentation. Stage 5.5B extends the
+shared TelemetryReplayService/ReplayState to expose these sensors in the interactive
+simulator-interface mock. Optional numbers interpolate only with both endpoints;
+camera tilt follows shortest-path angle interpolation. Discrete booleans/flight
+mode hold the earlier sample until the next exact timestamp. These playback rules
+do not change validation or scoring; see MOCK_SIMULATOR_REPLAY.md.
 
 ## ReplayContext (optional, added in 1.1)
 
@@ -281,7 +285,8 @@ Exercise semantics are checked separately from generic data:
 
 Import does not perform profile lookup or analysis. Stage 3 SessionAnalyzer takes
 a caller-supplied profile and validated session for evaluation/recommendations.
-Database-level duplicate SessionId detection remains a later-stage responsibility.
+Stage 6 SessionRepository enforces database-level duplicate SessionId detection
+after analysis, returning a nonfatal Duplicate result without overwriting history.
 
 ## Related domain records
 
@@ -370,9 +375,15 @@ profile is edited. A future explicit reanalysis operation may generate new resul
 and must retain the profile version associated with each evaluation. Persistence
 must retain the corresponding versioned configuration or an equivalent snapshot.
 
-SessionId is globally unique in the assistant database. Future import/persistence
-must reject an existing SessionId by default, without silently overwriting history.
+SessionId is globally unique in the assistant database. Stage 6 persistence
+rejects an existing SessionId by default, without silently overwriting history.
 An explicit replace/reimport operation may be designed separately later.
+
+Stage 6 stores the exact versioned profile and analysis snapshot, including all
+1.0/1.1 telemetry/events/replay records. Historical reconstruction never recalculates
+scores. The calculated assistant score is stored separately from any nullable
+assistant score originally supplied in JSON. SourceFilePath remains runtime-only
+and is null when reopening history. See PERSISTENCE_HISTORY.md.
 
 ## Synthetic example
 

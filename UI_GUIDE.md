@@ -1,4 +1,4 @@
-# FPV Training Assistant — UI guide (Stages 4–5.5A)
+# FPV Training Assistant — UI guide (Stages 4–6)
 
 ## Start the application
 
@@ -25,7 +25,7 @@ vertically; the shell and navigation remain visible.
 | Import session | Opens the start/import screen. Choose JSON file or the header Import session action opens the standard Windows picker. Ctrl+O is also bound to import. |
 | Session result | Available after successful analysis; returns to the current result. Disabled before a result exists and during processing. |
 | Trajectory | Enabled after analysis with at least two telemetry samples. Opens top-down replay; also available through View trajectory on Session result. |
-| History | Disabled; no persistence or history storage exists. |
+| History | Enabled when local storage initializes, even without a current import. Browse operators, reopen snapshots and compare score progress. |
 | Settings | Disabled; no profile editor exists. |
 
 The start screen explains the workflow, contract versions 1.0/1.1, supported exercises,
@@ -42,18 +42,21 @@ filter; an all-files filter is also available.
    match in its small built-in catalog.
 5. SessionAnalyzer runs off the UI thread. Its formulas and recommendation rules
    are unchanged from Stage 3.
-6. A successful result automatically opens Session result.
+6. The successful analysis is automatically saved to local history in one transaction.
+7. Session result opens with a saved, duplicate or unsaved status. Save failure does not discard analysis.
 
 While processing, import and navigation commands are disabled. The async command
 also prevents duplicate execution. Cancelling the picker leaves the current
 session/result untouched. Selecting a new file starts a new review and clears
 the previous result, so a failed new import cannot display an old score. Moving
 between Import session and Session result otherwise retains the current result.
-This is a single-session workspace, not an in-memory history implementation.
+The active review still contains one session; saved sessions are reopened separately
+through History. No session is silently overwritten on a repeated import.
 
 Trajectory navigation keeps the current session. Leaving that screen pauses
 playback. A new import replaces its path/route/time state; cancelling file selection
-does not replace the session. History and Settings remain disabled.
+does not replace the session. History is enabled when storage is ready; Settings
+remains disabled until Stage 7.
 
 ## Built-in profiles and synthetic route
 
@@ -211,11 +214,11 @@ remain 82.67 and 90.00. Live checks covered replay controls/speeds, events, metr
 resizing, no-route TargetMission, new-session reset, and a temporary 6000-sample
 path. The Stage 4 verification above remains a record of that delivery.
 
-## Open 3D Replay (Stage 5.5A)
+## Open 3D Replay — interactive prototype (Stage 5.5B)
 
 The Session result screen has two independent actions: View trajectory opens the
-existing local 2D screen; Open 3D Replay hands the original imported file to an
-external configured simulator. It is unavailable before a result is loaded or
+existing local 2D screen; Open 3D Replay opens Simulator Replay Prototype, an
+interactive WPF mock of the future external replay interface. It is unavailable before a result is loaded or
 while importing. Once a result exists, clicking can explain unmet prerequisites
 without losing that result or the ability to use 2D replay.
 
@@ -223,47 +226,99 @@ Try replay_obstacle_course_v1_1.json or replay_target_mission_v1_1.json in
 TestSessions. Both are synthetic 21-sample files with camera/battery/link/flight
 state extensions, a neutral environment/scenario and a moving entity track.
 Their scores remain 82.67 and 90.00. Existing 1.0 sessions still import and replay
-locally; absent environment data only prevents the external 3D handoff.
+locally; the mock preview requires Contract 1.1 replay context, a neutral environment
+and at least two drone samples.
 
-To enable the handoff, set FPVTRAINING_SIMULATOR_EXE to the executable's full path
-before launching the assistant. Configuration steps and the precise
-`-ReplayMode -ReplayFile="absolute path"` protocol are in
-[REPLAY_INTEGRATION.md](REPLAY_INTEGRATION.md). A compatible simulator implementation
-is still required; current DroneDiploma is not claimed to support this protocol.
+No simulator executable, environment variable or surviving source file is needed
+after successful import. The mock uses actual loaded data and does not launch
+DroneDiploma. The preserved future external launcher uses FPVTRAINING_SIMULATOR_EXE
+and `-ReplayMode -ReplayFile="absolute path"`; that protocol remains documented in
+[REPLAY_INTEGRATION.md](REPLAY_INTEGRATION.md), outside current laboratory wiring.
 
 The shell displays an in-app status message above the current screen:
 
+- Contract 1.0: "3D replay preview requires Contract 1.1 replay context. Analysis and 2D trajectory remain available."
 - No replay environment: "This session does not contain the environment information required for 3D replay."
-- No configured executable: "Simulator executable is not configured."
-- Source file deleted/moved: "The source replay file is no longer available."
-- Executable deleted/moved: "The configured simulator executable is no longer available."
+- Insufficient samples: "At least two telemetry samples are required for replay preview."
+- Successful open/activation: "Replay prototype initialized successfully. Mock integration preview; no external simulator was started."
 
-If several conditions fail, the first limitation is shown, with missing environment
-preceding source/configuration checks. The underlying capability retains all
-reasons. File availability is rechecked at click time. No MessageBox is required.
-Successful process start reports handoff only; local replay pauses. Importing
-another file clears launch status and replaces the source path/capability. The
-file itself is never rewritten and absolute paths never enter TrainingSession JSON.
+The window displays actual session/environment/scenario/source and counts. FPV
+shows a technical reticle/HUD; Third Person shows a stylized drone with recorded
+heading, position and attitude. Both are explicitly mock visualizations without
+a rendered simulator world. Recorded telemetry includes available 1.1 sensors;
+missing optional values display N/A. The right-hand telemetry list scrolls.
 
-Stage 5.5A verification: build has 0 warnings/errors; 320/320 tests pass, including
-all 245 previous tests. New headless cases cover unavailable commands, both contract
-versions, missing prerequisites, deleted source files, handoff arguments, refreshed
-state and continued local trajectory navigation. Process launches use test doubles.
+Use Play/Pause, Restart, Step Back/Forward, timeline seek and 0.5x/1x/2x. The first
+and last recorded drone timestamps bound playback. Seek/steps pause; Restart returns
+to the beginning paused; replay stops at the end without looping. Camera switching
+and panel toggles preserve time and playing state. The minimap uses the actual
+flight path, optional profile route and active entity positions. Hide Minimap frees
+viewport width; Hide Event Log frees viewport height.
 
-Live WPF verification used the standard picker and accessibility controls (no pixel
-assertions): the 1.1 obstacle fixture displayed 82.67 and the exact missing-simulator
-configuration message after Open 3D Replay. The unchanged 1.0 target fixture showed
-90.00 and the exact missing-environment message; View trajectory opened the local
-screen with its playback/stepping controls. No external simulator was started.
+The event log is chronological with Occurred/Upcoming indicators and Latest
+highlighting, plus readable metadata. Seeking updates events and entities together.
+Reopening the same session activates the existing mock window; closing stops its
+clock and leaves the main review and trajectory state available. A new import
+clears launch status and replaces runtime source/capability. Files remain unchanged;
+absolute paths never enter TrainingSession JSON.
+
+Stage 5.5B verification: 0 build warnings/errors and 364/364 tests, retaining all
+320 previous cases. Both 1.1 fixtures were opened in the real WPF mock, including
+camera changes, controls/speeds, panels, event/entity data, duplicate-window
+activation and safe close during playback. The 1.0 obstacle fixture kept score
+82.67 and local 2D replay while displaying the explicit preview limitation.
+No external simulator was started. [MOCK_SIMULATOR_REPLAY.md](MOCK_SIMULATOR_REPLAY.md)
+records exact behavior, lifetime, interpolation and demonstration results.
+
+## History, operators and progress (Stage 6)
+
+SQLite storage is created automatically at
+`%LOCALAPPDATA%\FPVTrainingAssistant\assistant.db`. It survives restart and does not
+modify imported JSON files. A successful import shows Session saved to history.
+An existing SessionId shows This session already exists in history and was not
+saved again. A storage failure shows that analysis completed but could not be saved;
+the current result/replay remains usable. Initialization failure disables History
+and clearly reports unavailable storage while allowing import and analysis.
+
+Open History and choose an operator. The selector shows optional display name,
+stable ID, total session count, last date and average score. Expand Operator details
+to edit optional DisplayName and Notes, then Save operator details. OperatorId is
+read-only and no personal information is required.
+
+The session table is newest first and shows local date/time, exercise, session ID,
+duration, assistant score, independent simulator score and outcome. Choose All
+exercises, ObstacleCourse or TargetMission to filter. Count, average, best and
+latest scores and the native 0..100 progress chart follow that filter; chart points
+are chronological. Empty operators/history/filter results have clear messages.
+Refresh or navigating back to History loads current saved data without restarting.
+
+Select a row and Open Result. The existing screen displays Historical session and
+uses stored scores, criterion explanations, mistakes/recommendations and route
+metrics. It does not rerun analysis. View trajectory uses saved telemetry; a 1.1
+session with context also opens the existing mock through Open 3D Replay. Neither
+requires the original JSON file. The future real external launcher would need an
+explicit file export/reconstruction; that is not included.
+
+For a short progress demonstration import history_progress_01.json through
+history_progress_03.json. Their recorded events produce 56.00, 82.67 and 100.00 for
+one synthetic operator on different dates. They do not bypass scoring by supplying
+assistant scores. Existing obstacle/target fixtures retain 82.67/90.00.
+
+Stage 6 verification: build has 0 warnings/errors; 395/395 tests pass. Live checks
+covered fresh empty history, automatic saves, both contract versions, duplicates,
+operator metadata, filters and chart. A complete shutdown/restart preserved the
+operator details and reopened result/trajectory/mock data. See
+[PERSISTENCE_HISTORY.md](PERSISTENCE_HISTORY.md) for exact schema and evidence.
 
 ## Current limits
 
-Only the current session/result is held in memory; closing the application loses
-it. There is no SQLite, saved history, progress chart, video/3D renderer,
-profile editing, authentication, simulator-side replay implementation or exporter.
-Stage 5.5A supplies only the assistant contract/handoff; FPV, third-person views,
-minimap, simulator event log and synchronized simulator timeline remain Stage 5.5B.
-Extended sensors/entity tracks are retained but not drawn in the local 2D screen. Imported
+The current selected screen/replay position is held in memory, while saved sessions
+and operator metadata survive restart in SQLite. There is no settings/profile editor,
+automatic reanalysis, session deletion/export UI, video/3D renderer, authentication,
+real simulator-side replay implementation or exporter.
+Stage 5.5B supplies an interactive interface mock with actual recorded data; real
+DroneDiploma FPV/third-person 3D rendering remains future production work. The
+original 2D screen retains its existing presentation. Imported
 files are read without modification. Built-in profiles support only their exact
 synthetic identities and version 1. Large event/result lists have a straightforward
 scrolling card layout rather than a dedicated high-volume event browser.

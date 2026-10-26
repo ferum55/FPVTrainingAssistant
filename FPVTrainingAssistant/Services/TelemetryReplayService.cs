@@ -1,4 +1,5 @@
 using FPVTrainingAssistant.Models;
+using static FPVTrainingAssistant.Services.ReplayInterpolation;
 
 namespace FPVTrainingAssistant.Services;
 
@@ -39,7 +40,18 @@ public sealed class TelemetryReplayService
             Lerp(a.SpeedMps, b.SpeedMps, f), Lerp(a.AltitudeM, b.AltitudeM, f),
             Angle(a.PitchDeg, b.PitchDeg, f), Angle(a.RollDeg, b.RollDeg, f), Angle(a.YawDeg, b.YawDeg, f),
             Optional(a.BatteryPercent, b.BatteryPercent, f), Optional(a.ControlLinkQualityPercent, b.ControlLinkQualityPercent, f),
-            Optional(a.VideoLinkQualityPercent, b.VideoLinkQualityPercent, f));
+            Optional(a.VideoLinkQualityPercent, b.VideoLinkQualityPercent, f))
+        {
+            VerticalSpeedMps = Optional(a.VerticalSpeedMps, b.VerticalSpeedMps, f),
+            CameraTiltDeg = OptionalAngle(a.CameraTiltDeg, b.CameraTiltDeg, f),
+            CameraFovDeg = Optional(a.CameraFovDeg, b.CameraFovDeg, f),
+            BatteryVoltageV = Optional(a.BatteryVoltageV, b.BatteryVoltageV, f),
+            CellVoltageV = Optional(a.CellVoltageV, b.CellVoltageV, f),
+            CurrentA = Optional(a.CurrentA, b.CurrentA, f),
+            ConsumedMah = Optional(a.ConsumedMah, b.ConsumedMah, f),
+            ControlRssiDbm = Optional(a.ControlRssiDbm, b.ControlRssiDbm, f),
+            Failsafe = a.Failsafe, FlightMode = a.FlightMode, Armed = a.Armed
+        };
     }
 
     public double NextSampleTime(double timeSec)
@@ -70,13 +82,13 @@ public sealed class TelemetryReplayService
     }
 
     private static ReplayState State(TelemetrySample s) => new(s.TimeSec, s.X, s.Y, s.Z, s.SpeedMps, s.AltitudeM,
-        Normalize(s.PitchDeg), Normalize(s.RollDeg), Normalize(s.YawDeg), s.BatteryPercent, s.ControlLinkQualityPercent, s.VideoLinkQualityPercent);
-    private static double Lerp(double a, double b, double f) => (1 - f) * a + f * b;
-    private static double? Optional(double? a, double? b, double f) => a.HasValue && b.HasValue ? Lerp(a.Value, b.Value, f) : null;
-    private static double Angle(double a, double b, double f) => Normalize(Normalize(a) + Normalize(Normalize(b) - Normalize(a)) * f);
-    private static double Normalize(double angle)
+        Normalize(s.PitchDeg), Normalize(s.RollDeg), Normalize(s.YawDeg), s.BatteryPercent, s.ControlLinkQualityPercent, s.VideoLinkQualityPercent)
     {
-        var wrapped = angle % 360;
-        return wrapped < -180 ? wrapped + 360 : wrapped >= 180 ? wrapped - 360 : wrapped;
-    }
+        VerticalSpeedMps = s.VerticalSpeedMps,
+        CameraTiltDeg = s.CameraTiltDeg is { } tilt ? Normalize(tilt) : null,
+        CameraFovDeg = s.CameraFovDeg,
+        BatteryVoltageV = s.BatteryVoltageV, CellVoltageV = s.CellVoltageV,
+        CurrentA = s.CurrentA, ConsumedMah = s.ConsumedMah, ControlRssiDbm = s.ControlRssiDbm,
+        Failsafe = s.Failsafe, FlightMode = s.FlightMode, Armed = s.Armed
+    };
 }

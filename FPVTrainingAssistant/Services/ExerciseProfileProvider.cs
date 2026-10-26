@@ -7,8 +7,16 @@ public sealed class ExerciseProfileProvider : IExerciseProfileProvider
     public ExerciseProfile? Resolve(TrainingSession session)
     {
         ArgumentNullException.ThrowIfNull(session);
-        if (session.ProfileVersion != 1) return null;
-        return (session.ProfileId, session.ExerciseType) switch
+        return Resolve(session.ProfileId, session.ProfileVersion, session.ExerciseType);
+    }
+
+    public static IReadOnlyList<ExerciseProfile> BuiltInProfiles() =>
+        [Resolve("synthetic-obstacle-course", 1, ExerciseTypes.ObstacleCourse)!, Resolve("synthetic-target-mission", 1, ExerciseTypes.TargetMission)!];
+
+    private static ExerciseProfile? Resolve(string profileId, int profileVersion, string exerciseType)
+    {
+        if (profileVersion != 1) return null;
+        return (profileId, exerciseType) switch
         {
             ("synthetic-obstacle-course", ExerciseTypes.ObstacleCourse) => DemoProfile(
                 DefaultExerciseProfiles.DefaultObstacleCourse(
@@ -26,7 +34,11 @@ public sealed class ExerciseProfileProvider : IExerciseProfileProvider
 
     private static ExerciseProfile DemoProfile(ExerciseProfile template, string id, string name) => new()
     {
-        ProfileId = id, Name = name, ExerciseType = template.ExerciseType, Version = template.Version,
-        Criteria = template.Criteria, ReferencePoints = template.ReferencePoints
+        ProfileId = id,
+        Name = name,
+        ExerciseType = template.ExerciseType,
+        Version = template.Version,
+        Criteria = template.Criteria,
+        ReferencePoints = template.ReferencePoints
     };
 }

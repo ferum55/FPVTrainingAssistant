@@ -1,5 +1,6 @@
 using FPVTrainingAssistant.Models;
 using FPVTrainingAssistant.Services;
+using FPVTrainingAssistant.Data;
 
 namespace FPVTrainingAssistant.ViewModels;
 
@@ -10,6 +11,11 @@ public sealed class MainViewModel : ViewModelBase
     private readonly IExerciseProfileProvider _profiles;
     private readonly ISessionAnalyzer _analyzer;
     private readonly ISimulatorReplayLauncher _replayLauncher;
+    private readonly ISessionRepository? _sessions;
+    private readonly IDatabaseInitializer? _databaseInitializer;
+    private bool _persistenceAvailable;
+    private string _storageMessage = "";
+    private SessionSaveResult? _lastSaveResult;
     private readonly ReplayCapabilityService _replayCapabilities = new();
     private string? _sourceFilePath;
     private ReplayCapability? _replayCapability;
@@ -25,13 +31,17 @@ public sealed class MainViewModel : ViewModelBase
     private IReadOnlyList<ValidationIssue> _validationWarnings = [];
 
     public MainViewModel(IFileDialogService fileDialog, ISessionImportService importer,
-        IExerciseProfileProvider profiles, ISessionAnalyzer analyzer, ISimulatorReplayLauncher? replayLauncher = null)
+        IExerciseProfileProvider profiles, ISessionAnalyzer analyzer, ISimulatorReplayLauncher? replayLauncher = null,
+        ISessionRepository? sessions = null, IHistoryRepository? history = null, IDatabaseInitializer? databaseInitializer = null)
     {
         _fileDialog = fileDialog;
         _importer = importer;
         _profiles = profiles;
         _analyzer = analyzer;
-        _replayLauncher = replayLauncher ?? new SimulatorReplayLauncher();
+        _replayLauncher = replayLauncher ?? new MockSimulatorReplayLauncher();
+        _sessions = sessions;
+        _databaseInitializer = databaseInitializer;
+        _persistenceAvailable = databaseInitializer is null && sessions is not null && history is not null;
         ImportCommand = new(PickAndImportAsync, () => !IsBusy, _ => ShowUnexpectedFailure());
         ImportView = new(ImportCommand);
         _currentViewModel = ImportView;
@@ -39,6 +49,8 @@ public sealed class MainViewModel : ViewModelBase
         NavigateResultCommand = new(() => CurrentViewModel = ResultView!, () => !IsBusy && HasResult);
         NavigateTrajectoryCommand = new(() => CurrentViewModel = TrajectoryView!, () => !IsBusy && HasTrajectory);
         Open3DReplayCommand = new(Open3DReplay, () => !IsBusy && HasResult && ImportedSession is not null);
+        HistoryView = history is null ? null : new HistoryViewModel(history, OpenHistoricalAsync);
+        NavigateHistoryCommand = new(async () => { CurrentViewModel = HistoryView!; await HistoryView!.RefreshAsync(); }, () => !IsBusy && PersistenceAvailable && HistoryView is not null);
     }
 
     public ImportSessionViewModel ImportView { get; }
@@ -47,6 +59,16 @@ public sealed class MainViewModel : ViewModelBase
     public RelayCommand NavigateResultCommand { get; }
     public RelayCommand NavigateTrajectoryCommand { get; }
     public RelayCommand Open3DReplayCommand { get; }
+    public AsyncRelayCommand NavigateHistoryCommand { get; }
+    public HistoryViewModel? HistoryView { get; }
+    public bool PersistenceAvailable
+    {
+        get => _persistenceAvailable;
+        private set { if (SetProperty(ref _persistenceAvailable, value)) NavigateHistoryCommand.RaiseCanExecuteChanged(); }
+    }
+    public string StorageMessage { get => _storageMessage; private set { SetProperty(ref _storageMessage, value); OnPropertyChanged(nameof(HasStorageMessage)); } }
+    public bool HasStorageMessage => !string.IsNullOrEmpty(StorageMessage);
+    public SessionSaveResult? LastSaveResult { get => _lastSaveResult; private set => SetProperty(ref _lastSaveResult, value); }
     public string? SourceFilePath { get => _sourceFilePath; private set => SetProperty(ref _sourceFilePath, value); }
     public ReplayCapability? ReplayCapability { get => _replayCapability; private set => SetProperty(ref _replayCapability, value); }
     public string ReplayLaunchMessage
@@ -69,12 +91,14 @@ public sealed class MainViewModel : ViewModelBase
             OnPropertyChanged(nameof(IsImportScreen));
             OnPropertyChanged(nameof(IsResultScreen));
             OnPropertyChanged(nameof(IsTrajectoryScreen));
+            OnPropertyChanged(nameof(IsHistoryScreen));
         }
     }
     public bool IsImportScreen => ReferenceEquals(CurrentViewModel, ImportView);
     public bool IsResultScreen => CurrentViewModel is SessionResultViewModel;
     public bool IsTrajectoryScreen => CurrentViewModel is TrajectoryViewModel;
-    public string ScreenTitle => IsImportScreen ? "Import session" : IsTrajectoryScreen ? "Trajectory & replay" : "Session result";
+    public bool IsHistoryScreen => CurrentViewModel is HistoryViewModel;
+    public string ScreenTitle => IsImportScreen ? "Import session" : IsHistoryScreen ? "History & progress" : IsTrajectoryScreen ? "Trajectory & replay" : "Session result";
     public string StatusText { get => _statusText; private set => SetProperty(ref _statusText, value); }
     public bool IsBusy
     {
@@ -88,6 +112,7 @@ public sealed class MainViewModel : ViewModelBase
             NavigateResultCommand.RaiseCanExecuteChanged();
             NavigateTrajectoryCommand.RaiseCanExecuteChanged();
             Open3DReplayCommand.RaiseCanExecuteChanged();
+            NavigateHistoryCommand.RaiseCanExecuteChanged();
         }
     }
     public TrainingSession? ImportedSession { get => _importedSession; private set => SetProperty(ref _importedSession, value); }
@@ -133,6 +158,7 @@ public sealed class MainViewModel : ViewModelBase
         try
         {
             ImportView.Begin(filePath);
+            LastSaveResult = null;
             ImportedSession = null;
             SourceFilePath = null;
             ReplayCapability = null;
@@ -168,9 +194,16 @@ public sealed class MainViewModel : ViewModelBase
             var session = ImportedSession;
             var profile = Profile;
             AnalysisResult = await Task.Run(() => _analyzer.Analyze(session, profile));
-            TrajectoryView = new(session, profile, AnalysisResult);
-            ResultView = new(session, profile, AnalysisResult, ValidationWarnings, NavigateTrajectoryCommand, Open3DReplayCommand);
-            CurrentViewModel = ResultView;
+            var snapshot = new StoredSession(session, profile, AnalysisResult);
+            if (PersistenceAvailable && _sessions is not null)
+            {
+                StatusText = "Saving session...";
+                try { LastSaveResult = await _sessions.SaveAsync(snapshot); }
+                catch { LastSaveResult = new(SessionSaveState.Failed, "The session was analyzed but could not be saved to history."); }
+                StorageMessage = LastSaveResult.Message;
+            }
+            else if (_sessions is not null) StorageMessage = "The session was analyzed but could not be saved to history. History storage is unavailable.";
+            ActivateSession(snapshot, "Imported session", SourceFilePath);
             StatusText = "Analysis complete";
         }
         catch (AnalysisConfigurationException exception)
@@ -188,6 +221,46 @@ public sealed class MainViewModel : ViewModelBase
         }
     }
 
+    public async Task InitializePersistenceAsync()
+    {
+        if (_databaseInitializer is null) return;
+        IsBusy = true; StatusText = "Opening history storage...";
+        try
+        {
+            var result = await _databaseInitializer.InitializeAsync();
+            PersistenceAvailable = result.IsSuccess;
+            StorageMessage = result.IsSuccess ? "" : result.Message;
+        }
+        catch { PersistenceAvailable = false; StorageMessage = "History storage is unavailable. Import and analysis remain available."; }
+        finally { IsBusy = false; StatusText = "Ready to import"; }
+    }
+
+    private void ActivateSession(StoredSession snapshot, string origin, string? path)
+    {
+        ImportedSession = snapshot.Session; Profile = snapshot.Profile; AnalysisResult = snapshot.Analysis; SourceFilePath = path;
+        RefreshReplayCapability();
+        TrajectoryView = new(snapshot.Session, snapshot.Profile, snapshot.Analysis);
+        ResultView = new(snapshot.Session, snapshot.Profile, snapshot.Analysis, ValidationWarnings, NavigateTrajectoryCommand, Open3DReplayCommand, origin);
+        CurrentViewModel = ResultView;
+    }
+
+    public async Task OpenHistoricalAsync(string sessionId)
+    {
+        if (IsBusy || !PersistenceAvailable || _sessions is null) return;
+        IsBusy = true;
+        try
+        {
+            var saved = await _sessions.LoadAsync(sessionId);
+            if (saved is null) { StorageMessage = "History session could not be found."; return; }
+            ValidationWarnings = []; ReplayLaunchMessage = ""; LastSaveResult = null;
+            ActivateSession(saved, "Historical session", null);
+            StorageMessage = "Opened saved history snapshot. Scores were not recalculated.";
+            StatusText = "Historical session loaded";
+        }
+        catch { StorageMessage = "History session could not be loaded."; }
+        finally { IsBusy = false; }
+    }
+
     private void RefreshReplayCapability() => ReplayCapability =
         _replayCapabilities.Evaluate(ImportedSession, SourceFilePath, _replayLauncher.SimulatorExecutablePath);
 
@@ -196,17 +269,19 @@ public sealed class MainViewModel : ViewModelBase
         try
         {
             RefreshReplayCapability();
-            if (ReplayCapability is not { CanLaunchSimulatorReplay: true })
+            var available = _replayLauncher.IsMock ? ReplayCapability?.CanPreviewReplay == true : ReplayCapability?.CanLaunchExternalSimulator == true;
+            if (!available)
             {
-                ReplayLaunchMessage = ReplayCapability?.Limitations.FirstOrDefault() ?? "3D replay is unavailable.";
+                ReplayLaunchMessage = (_replayLauncher.IsMock ? ReplayCapability?.PreviewLimitations : ReplayCapability?.Limitations)?.FirstOrDefault() ?? "3D replay is unavailable.";
                 return;
             }
-            TrajectoryView?.Pause();
-            ReplayLaunchMessage = _replayLauncher.Launch(SourceFilePath).Message;
+            if (!_replayLauncher.IsMock) TrajectoryView?.Pause();
+            ReplayLaunchMessage = _replayLauncher.Launch(new ReplayLaunchRequest(ImportedSession!, Profile!, AnalysisResult!, SourceFilePath)).Message;
         }
         catch (Exception)
         {
-            ReplayLaunchMessage = "The simulator could not be started. Check the executable configuration and try again.";
+            ReplayLaunchMessage = _replayLauncher.IsMock ? "The replay prototype could not be opened. Try again."
+                : "The simulator could not be started. Check the executable configuration and try again.";
         }
     }
 

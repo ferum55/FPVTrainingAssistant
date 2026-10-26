@@ -3,7 +3,9 @@
         <StackPanel Margin="32,28">
             <WrapPanel Margin="0,0,0,18">
                 <Button Content="View trajectory" Command="{Binding ViewTrajectoryCommand}" Margin="0,0,12,0" ToolTipService.ShowOnDisabled="True" ToolTip="Replay requires at least two telemetry samples." />
-                <Button Content="Open 3D Replay" Command="{Binding Open3DReplayCommand}" ToolTip="Open the source file in the configured simulator. Requires simulator replay support." />
+                <Button Content="Open 3D Replay" Command="{Binding Open3DReplayCommand}" ToolTip="Open the interactive simulator replay prototype using this session's recorded data." />
+                <TextBlock Text="Prototype" Foreground="{StaticResource WarningBrush}" FontSize="11" VerticalAlignment="Center" Margin="10,0,0,0" />
+                <TextBlock Text="{Binding Origin}" Style="{StaticResource MutedText}" VerticalAlignment="Center" Margin="22,0,0,0" />
             </WrapPanel>
             <Border Style="{StaticResource Card}" BorderBrush="{StaticResource WarningBrush}" Margin="0,0,0,20" Visibility="{Binding HasWarnings, Converter={StaticResource BoolVisibility}}">
                 <StackPanel><TextBlock Text="Imported with warnings" Foreground="{StaticResource WarningBrush}" Style="{StaticResource SectionTitle}" /><TextBlock Text="Analysis completed. Review these data-quality notes when interpreting the results." Margin="0,0,0,14" /><ItemsControl ItemsSource="{Binding Warnings}" ItemTemplate="{StaticResource ValidationIssueTemplate}" /></StackPanel>
