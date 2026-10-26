@@ -4,7 +4,7 @@ using FPVTrainingAssistant.Models;
 
 namespace FPVTrainingAssistant.Services;
 
-public sealed class SessionImportService
+public sealed class SessionImportService : ISessionImportService
 {
     private readonly SessionValidator _validator = new();
 

@@ -4,9 +4,10 @@ The product requirements and boundaries are recorded in [PROJECT_CONTEXT.md](PRO
 Each stage should leave a buildable application. Keep changes small, use MVVM,
 and avoid adding dependencies before they are needed.
 
-Stages 1 through 3 are delivered: the scaffold, domain models, contracts,
-JSON import/validation, deterministic analysis, synthetic examples, and focused
-xUnit tests. Application UI, persistence, and later stages remain planned.
+Stages 1 through 4 are delivered: the scaffold, domain models, contracts,
+JSON import/validation, deterministic analysis, basic WPF review UI, synthetic
+examples, and focused xUnit tests. Trajectory/replay, persistence, configuration
+editing, and later stages remain planned.
 
 ## Stage 1 - project structure and models
 
@@ -73,6 +74,16 @@ determinism checks. No WPF UI, persistence, or replay is added.
 
 Acceptance: an instructor can import a file and understand its result through
 the UI; failed imports leave a usable application.
+
+Delivered with a dark WPF shell, import and result DataTemplates, portable MVVM
+infrastructure/state, a standard file picker, explicit synthetic profile lookup,
+in-app errors/warnings, separate assistant/simulator scores, criterion explanations,
+mistakes, recommendations, and chronological events. UI_GUIDE.md documents usage,
+profile identities/route, architecture, verification, and limits. All four requested
+fixtures were checked in the running WPF application, including recovery after
+invalid imports. Stage 4 verification: build has 0 warnings/errors; all 203 tests
+pass, retaining the previous 177. Future navigation stays disabled; no Stage 5+
+functionality is included.
 
 ## Stage 5 - trajectory visualization/replay
 

@@ -1,0 +1,85 @@
+<UserControl x:Class="FPVTrainingAssistant.Views.SessionResultView" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <StackPanel Margin="32,28">
+            <Border Style="{StaticResource Card}" BorderBrush="{StaticResource WarningBrush}" Margin="0,0,0,20" Visibility="{Binding HasWarnings, Converter={StaticResource BoolVisibility}}">
+                <StackPanel><TextBlock Text="Imported with warnings" Foreground="{StaticResource WarningBrush}" Style="{StaticResource SectionTitle}" /><TextBlock Text="Analysis completed. Review these data-quality notes when interpreting the results." Margin="0,0,0,14" /><ItemsControl ItemsSource="{Binding Warnings}" ItemTemplate="{StaticResource ValidationIssueTemplate}" /></StackPanel>
+            </Border>
+            <Grid Margin="0,0,0,22">
+                <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="280" /></Grid.ColumnDefinitions>
+                <Border Style="{StaticResource Card}" Margin="0,0,18,0">
+                    <StackPanel>
+                        <TextBlock Text="SESSION OVERVIEW" Style="{StaticResource MutedText}" FontSize="10" />
+                        <TextBlock Text="{Binding ExerciseType}" FontSize="25" FontWeight="SemiBold" Margin="0,8,0,20" />
+                        <UniformGrid Columns="2">
+                            <StackPanel Margin="0,0,14,16"><TextBlock Text="Operator ID" Style="{StaticResource MutedText}" /><TextBlock Text="{Binding OperatorId}" FontWeight="SemiBold" Margin="0,5,0,0" /></StackPanel>
+                            <StackPanel Margin="0,0,0,16"><TextBlock Text="Session ID" Style="{StaticResource MutedText}" /><TextBlock Text="{Binding SessionId}" Margin="0,5,0,0" /></StackPanel>
+                            <StackPanel Margin="0,0,14,16"><TextBlock Text="Started at" Style="{StaticResource MutedText}" /><TextBlock Text="{Binding StartedAt}" Margin="0,5,0,0" /></StackPanel>
+                            <StackPanel Margin="0,0,0,16"><TextBlock Text="Duration" Style="{StaticResource MutedText}" /><TextBlock Text="{Binding Duration}" Margin="0,5,0,0" /></StackPanel>
+                            <StackPanel Margin="0,0,14,0"><TextBlock Text="Source simulator" Style="{StaticResource MutedText}" /><TextBlock Text="{Binding SourceSimulator}" Margin="0,5,0,0" /></StackPanel>
+                            <StackPanel><TextBlock Text="Session outcome" Style="{StaticResource MutedText}" /><TextBlock Text="{Binding Outcome}" Margin="0,5,0,0" /></StackPanel>
+                        </UniformGrid>
+                    </StackPanel>
+                </Border>
+                <Border Grid.Column="1" Style="{StaticResource Card}">
+                    <StackPanel>
+                        <TextBlock Text="Assistant score" FontSize="16" FontWeight="SemiBold" />
+                        <StackPanel Orientation="Horizontal" Margin="0,12,0,10"><TextBlock Text="{Binding AssistantScoreText}" FontSize="44" FontWeight="SemiBold" Foreground="{StaticResource AccentBrush}" /><TextBlock Text=" / 100" Foreground="{StaticResource MutedBrush}" VerticalAlignment="Bottom" Margin="0,0,0,9" /></StackPanel>
+                        <ProgressBar Value="{Binding AssistantScore, Mode=OneWay}" Minimum="0" Maximum="100" Height="5" Foreground="{StaticResource AccentBrush}" Background="{StaticResource InsetBrush}" BorderThickness="0" />
+                        <Border Height="1" Background="{StaticResource BorderBrush}" Margin="0,22,0,16" />
+                        <TextBlock Text="Simulator score" Style="{StaticResource MutedText}" /><TextBlock Text="{Binding SimulatorScoreText}" FontSize="21" FontWeight="SemiBold" Margin="0,5,0,4" />
+                        <TextBlock Text="Source-provided value; uses the simulator's own scale." Style="{StaticResource MutedText}" />
+                    </StackPanel>
+                </Border>
+            </Grid>
+            <Border Style="{StaticResource Card}" Margin="0,0,0,22">
+                <StackPanel>
+                    <TextBlock Text="Criterion results" Style="{StaticResource SectionTitle}" />
+                    <TextBlock Text="{Binding ProfileName}" Foreground="{StaticResource MutedBrush}" /><TextBlock Text="{Binding ProfileIdentity}" Style="{StaticResource MutedText}" Margin="0,4,0,18" />
+                    <ItemsControl ItemsSource="{Binding Criteria}"><ItemsControl.ItemTemplate><DataTemplate>
+                        <Border BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0" Padding="0,16" Margin="0,0,0,2">
+                            <StackPanel><DockPanel><TextBlock Text="{Binding ScoreText}" DockPanel.Dock="Right" Foreground="{StaticResource AccentBrush}" FontWeight="SemiBold" Margin="18,0,0,0" /><TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="16" /></DockPanel>
+                                <TextBlock Text="{Binding MeasuredValueText}" Style="{StaticResource MutedText}" Margin="0,7,0,6" /><TextBlock Text="{Binding Explanation}" />
+                            </StackPanel>
+                        </Border>
+                    </DataTemplate></ItemsControl.ItemTemplate></ItemsControl>
+                </StackPanel>
+            </Border>
+            <Border Style="{StaticResource Card}" Margin="0,0,0,22">
+                <StackPanel><TextBlock Text="Detected mistakes" Style="{StaticResource SectionTitle}" />
+                    <TextBlock Text="No significant mistakes were detected." Foreground="{StaticResource MutedBrush}" Visibility="{Binding HasNoMistakes, Converter={StaticResource BoolVisibility}}" />
+                    <ItemsControl ItemsSource="{Binding Mistakes}"><ItemsControl.ItemTemplate><DataTemplate>
+                        <Border Background="{StaticResource InsetBrush}" CornerRadius="6" Padding="15" Margin="0,0,0,10"><StackPanel>
+                            <TextBlock Text="{Binding Category}" Foreground="{StaticResource WarningBrush}" FontSize="12" FontWeight="SemiBold" />
+                            <TextBlock Text="{Binding Description}" FontWeight="SemiBold" Margin="0,6,0,4" /><TextBlock Text="{Binding Context}" Style="{StaticResource MutedText}" />
+                            <TextBlock Text="{Binding Evidence}" Foreground="{StaticResource MutedBrush}" Margin="0,8,0,0" />
+                        </StackPanel></Border>
+                    </DataTemplate></ItemsControl.ItemTemplate></ItemsControl>
+                </StackPanel>
+            </Border>
+            <Border Style="{StaticResource Card}" Margin="0,0,0,22">
+                <StackPanel><TextBlock Text="Training recommendations" Style="{StaticResource SectionTitle}" />
+                    <TextBlock Text="No additional recommendations for this session." Foreground="{StaticResource MutedBrush}" Visibility="{Binding HasNoRecommendations, Converter={StaticResource BoolVisibility}}" />
+                    <ItemsControl ItemsSource="{Binding Recommendations}"><ItemsControl.ItemTemplate><DataTemplate>
+                        <Border BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0" Padding="0,16"><StackPanel>
+                            <WrapPanel><TextBlock Text="{Binding PriorityLabel, StringFormat={}{0} priority}" Foreground="{StaticResource AccentBrush}" FontWeight="SemiBold" Margin="0,0,14,0" /><TextBlock Text="{Binding Category}" Style="{StaticResource MutedText}" /></WrapPanel>
+                            <TextBlock Text="{Binding Text}" FontWeight="SemiBold" Margin="0,8,0,7" /><TextBlock Text="{Binding Evidence}" Foreground="{StaticResource MutedBrush}" />
+                        </StackPanel></Border>
+                    </DataTemplate></ItemsControl.ItemTemplate></ItemsControl>
+                </StackPanel>
+            </Border>
+            <Border Style="{StaticResource Card}">
+                <StackPanel><TextBlock Text="Session events" Style="{StaticResource SectionTitle}" />
+                    <TextBlock Text="No session events were recorded." Foreground="{StaticResource MutedBrush}" Visibility="{Binding HasNoEvents, Converter={StaticResource BoolVisibility}}" />
+                    <ItemsControl ItemsSource="{Binding Events}"><ItemsControl.ItemTemplate><DataTemplate>
+                        <Border BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0" Padding="0,13">
+                            <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="90" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                                <TextBlock Text="{Binding TimeText}" Foreground="{StaticResource AccentBrush}" FontFamily="Consolas" />
+                                <StackPanel Grid.Column="1"><TextBlock Text="{Binding EventType}" FontWeight="SemiBold" /><TextBlock Text="{Binding EntityId}" Style="{StaticResource MutedText}" Margin="0,5,0,0" /><TextBlock Text="{Binding Details}" Foreground="{StaticResource MutedBrush}" Margin="0,5,0,0" /></StackPanel>
+                            </Grid>
+                        </Border>
+                    </DataTemplate></ItemsControl.ItemTemplate></ItemsControl>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

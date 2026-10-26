@@ -2,7 +2,7 @@ using FPVTrainingAssistant.Models;
 
 namespace FPVTrainingAssistant.Services;
 
-public sealed class SessionAnalyzer
+public sealed class SessionAnalyzer : ISessionAnalyzer
 {
     private readonly double _redZoneMistakeThresholdPercent;
 

@@ -221,9 +221,10 @@ builders; existing JSON fixtures are unchanged and do not claim simulator export
 ## Current limitations and verification
 
 The rules are deterministic prototype assessment rules, not adaptive AI. Only
-the eight named rules and two exercises are implemented. No profile lookup,
-profile editor, WPF analysis UI, route rendering/replay, SQLite, historical
-reanalysis, or persistence is implemented. Profile version and configuration
+the eight named rules and two exercises are implemented in the engine. Stage 4
+layers a WPF review UI and a small built-in synthetic profile provider over this
+engine; see UI_GUIDE.md. A profile editor, route rendering/replay, SQLite, historical
+reanalysis, and persistence remain unimplemented. Profile version and configuration
 snapshots still need storage in Stage 6. Course-specific expected checkpoints,
 target identity reconciliation, continuous path extrema, and missing-telemetry
 coverage penalties are not inferred.

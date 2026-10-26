@@ -304,8 +304,19 @@ and matching profile/version. New assistant scores are returned in
 SessionAnalysisResult.FinalScore; the input session and SimulatorScore remain
 unchanged. IsSuccessful reports analysis completion, independently of mission
 success. Generic ObstacleCourse defaults require caller-supplied course geometry
-before their enabled route criterion can be evaluated. UI, replay, persistence,
-and history remain planned; analysis adds no WPF or database dependencies.
+before their enabled route criterion can be evaluated. At Stage 3, UI, replay,
+persistence, and history remained planned; analysis adds no WPF or database dependencies.
+
+Stage 4 adds the English instructor-facing WPF import/result UI with lightweight
+MVVM, standard Windows file selection, recoverable error/warning states, and
+separate score presentation. A temporary ExerciseProfileProvider supplies explicit
+version-1 synthetic profiles matching the demonstration fixtures, including a
+clearly synthetic obstacle route. It never rewrites session/profile IDs to bypass
+compatibility. Existing import and analysis behavior is unchanged; small service
+interfaces support headless ViewModel tests. UI_GUIDE.md records the workflow,
+profile geometry, live verification, and limitations. Only the current review is
+kept in memory. Trajectory/replay, persistence/history, progress charts, and profile
+editing remain planned; their navigation is disabled.
 
 Repository: https://github.com/ferum55/FPVTrainingAssistant.git
 

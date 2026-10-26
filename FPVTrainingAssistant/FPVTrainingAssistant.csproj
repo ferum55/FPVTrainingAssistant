@@ -12,7 +12,11 @@
   </PropertyGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net10.0'">
-    <Compile Remove="App.xaml.cs;AssemblyInfo.cs;Views/**/*.cs" />
+    <Compile Remove="App.xaml.cs;AssemblyInfo.cs;Views/**/*.cs;Services/FileDialogService.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="TestSessions/*.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>
