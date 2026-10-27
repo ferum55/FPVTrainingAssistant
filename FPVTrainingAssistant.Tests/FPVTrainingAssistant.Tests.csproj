@@ -16,7 +16,7 @@
   <ItemGroup>
     <Using Include="Xunit" />
     <ProjectReference Include="../FPVTrainingAssistant/FPVTrainingAssistant.csproj" />
-    <None Include="../FPVTrainingAssistant/TestSessions/*.json" Link="TestSessions/%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="../FPVTrainingAssistant/TestSessions/**/*.json" Link="TestSessions/%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

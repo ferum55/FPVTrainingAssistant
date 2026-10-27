@@ -433,6 +433,23 @@ WPF checks migrated the Stage 6 database, created both v2 profiles and verified
 active state/preferences after restart, preserved historical replay and unchanged
 82.67/90.00 v1 baselines. Stages 8/9 remain future work; DroneDiploma is unchanged.
 
+Stage 8 adds the final numbered synthetic dataset in TestSessions/Demo, using
+baseline v1 profiles on clean storage. Contract 1.0 covers import/analysis/2D replay;
+1.1 covers extended telemetry, recorded entities and the mock replay. Demo progress
+for demo-operator-01 is calculated from events as 56.00/82.67/100.00; no imported
+assistant scores force the graph. The obstacle error path additionally demonstrates
+80/5/15 percent green/yellow/red exposure and 77.42. Existing 82.67/90.00 baselines
+and all older fixtures/formulas remain unchanged.
+
+[DEMO_SCENARIOS.md](DEMO_SCENARIOS.md) contains the manifest, six scenario outcomes,
+repeatable clean launch/reset/restart workflow and screenshot checklist. The explicit
+developer --data-directory option selects isolated local storage without changing
+the default per-user path or resetting data. Real WPF verification passed all six
+scenarios and a full restart, retaining history, profiles, settings and both replay
+views. The 436 existing tests plus 26 Stage 8 cases total 462 passing; build has
+0 warnings/errors. No report files or DroneDiploma changes were made. Stage 9 remains
+future work.
+
 Repository: https://github.com/ferum55/FPVTrainingAssistant.git
 
 Before work, verify `git remote -v`, `git config --local --get user.name`, and

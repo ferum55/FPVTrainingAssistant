@@ -4,13 +4,14 @@ The product requirements and boundaries are recorded in [PROJECT_CONTEXT.md](PRO
 Each stage should leave a buildable application. Keep changes small, use MVVM,
 and avoid adding dependencies before they are needed.
 
-Stages 1 through 7, including Stages 5.5A/5.5B, are delivered: the scaffold, domain models, contracts,
+Stages 1 through 8, including Stages 5.5A/5.5B, are delivered: the scaffold, domain models, contracts,
 JSON import/validation, deterministic analysis, WPF review UI, top-down trajectory
 and telemetry replay, replay-capable contract 1.1, assistant-side simulator handoff,
 an interactive simulator-interface mock, synthetic examples, and focused xUnit tests.
 SQLite snapshots, operator metadata, history/reopening and native score progress
 are also delivered, along with versioned profile configuration and replay preferences.
-Real simulator integration and Stages 8/9 remain planned.
+Stage 8 adds the final synthetic demo dataset and complete laboratory scenario
+verification. Real simulator integration and Stage 9 remain planned.
 
 ## Stage 1 - project structure and models
 
@@ -228,7 +229,7 @@ full restart with saved defaults. Baseline v1 scores remain 82.67/90.00. An expl
 temporary v2 session used its changed configuration and scored 77.58. Details are
 in SETTINGS_CONFIGURATION.md. No Stage 8/9 work is included.
 
-## Stage 8 - sample sessions and automated tests
+## Stage 8 - sample sessions and automated tests (delivered)
 
 - Prepare clearly labeled synthetic JSON sessions for both exercise types,
   malformed/incomplete input, weak results, and repeated operator sessions.
@@ -240,6 +241,28 @@ in SETTINGS_CONFIGURATION.md. No Stage 8/9 work is included.
 Acceptance: deterministic fixtures and tests demonstrate the six scenarios.
 Add focused tests earlier when needed to validate the service under development;
 this stage completes the demonstration set and regression coverage.
+
+Delivered with ten numbered synthetic JSON files in TestSessions/Demo, exact
+baseline v1 profile references, both contracts, a single missing-SessionId invalid
+case, obstacle green/yellow/red departure, strong/weak target missions and a
+56.00/82.67/100.00 progress series for demo-operator-01. Recursive fixture output
+copying makes the same dataset available in normal development/build environments.
+The optional developer --data-directory argument supports fresh/restarted demo
+storage without resetting the default user database or introducing a reset UI.
+
+LaboratoryScenarioTests exercises all six scenarios with real importer, stored
+profiles, analyzer, persistence and history, plus fixture enumeration, score
+components/evidence, settings/versioning and mock ViewModel regressions.
+DemoDataDirectoryTests verifies explicit isolated storage and launch validation.
+All 436 prior cases are retained; 26 new cases give 462/462 passing. Required
+solution build: 0 warnings/errors. Established v1 scores remain 82.67/90.00.
+
+All six scenarios passed in the running WPF application using the final fixtures
+and clean schema-2 storage. A full process restart retained the nine saved sessions,
+history/progress, v1 results, trajectory, stored 1.1 mock data, active v2 configuration
+and saved replay defaults. DEMO_SCENARIOS.md records the manifest, actual outcomes,
+clean reset/restart procedure, short walkthrough and screenshot checklist. Report
+files and DroneDiploma were not changed. Stage 9 is not started.
 
 ## Stage 9 - final polish and laboratory demonstration
 

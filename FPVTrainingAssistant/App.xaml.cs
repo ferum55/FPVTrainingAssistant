@@ -7,7 +7,15 @@ public partial class App : Application
     protected override async void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
-        var connections = new Data.DatabaseConnectionFactory(new Data.ApplicationDataPathProvider());
+        Data.ApplicationDataPathProvider paths;
+        try { paths = Data.ApplicationDataPathProvider.FromArguments(e.Args); }
+        catch (ArgumentException exception)
+        {
+            MessageBox.Show(exception.Message, "Application startup", MessageBoxButton.OK, MessageBoxImage.Information);
+            Shutdown(1);
+            return;
+        }
+        var connections = new Data.DatabaseConnectionFactory(paths);
         var profileRepository=new Data.ExerciseProfileRepository(connections);
         var preferences=new Data.ApplicationSettingsService(connections);
         var viewModel = new ViewModels.MainViewModel(new Services.FileDialogService(), new Services.SessionImportService(),

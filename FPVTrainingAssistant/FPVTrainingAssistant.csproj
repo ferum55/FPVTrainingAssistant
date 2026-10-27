@@ -16,7 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="TestSessions/*.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="TestSessions/**/*.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>

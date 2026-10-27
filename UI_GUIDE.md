@@ -1,4 +1,4 @@
-# FPV Training Assistant — UI guide (Stages 4–7)
+# FPV Training Assistant — UI guide (Stages 4–8)
 
 ## Start the application
 
@@ -12,6 +12,22 @@ Alternatively run FPVTrainingAssistant.exe from the Windows build output.
 The application opens centered at 1300 x 800 logical pixels and allows resizing
 down to 1080 x 680. Interface text is English. The native Windows file picker
 uses the operating system's language.
+
+For the final laboratory demonstration, use the ten numbered files in
+`FPVTrainingAssistant/TestSessions/Demo/` (also copied to build output). See
+[DEMO_SCENARIOS.md](DEMO_SCENARIOS.md) for the six scenarios, expected scores,
+short walkthrough, screenshot checklist and observed verification results.
+To rehearse on fresh storage without changing normal history, launch with an
+absolute `--data-directory` argument:
+
+```powershell
+$demoDirectory = Join-Path $env:TEMP ("FPVTrainingAssistant-demo-" + [guid]::NewGuid().ToString("N"))
+dotnet run --project FPVTrainingAssistant --framework net10.0-windows -- --data-directory "$demoDirectory"
+```
+
+Reuse the same directory after closing/restarting to retain the demonstration;
+choose a new directory to reset it. Sessions are imported explicitly through the
+picker; no sample import or database reset happens automatically.
 
 ## Layout and navigation
 
@@ -39,7 +55,7 @@ filter; an all-files filter is also available.
 2. The application displays the chosen file name/path and a busy indicator.
 3. SessionImportService performs the existing structural and semantic checks.
 4. ExerciseProfileProvider looks up an exact ProfileId/ProfileVersion/ExerciseType
-   match in its small built-in catalog.
+   match in SQLite, or uses its built-in v1 catalog when storage is unavailable.
 5. SessionAnalyzer runs off the UI thread. Its formulas and recommendation rules
    are unchanged from Stage 3.
 6. The successful analysis is automatically saved to local history in one transaction.
