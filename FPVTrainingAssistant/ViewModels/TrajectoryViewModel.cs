@@ -85,9 +85,9 @@ public sealed class TrajectoryViewModel : ViewModelBase
     public bool HasNoRecentEvents => RecentEvents.Count == 0;
     public RouteAnalysisResult? RouteMetrics => Analysis.RouteAnalysis;
     public bool HasRouteMetrics => RouteMetrics is not null;
-    public string GreenTimeText => Metric(RouteMetrics?.GreenTimePercent, "%");
-    public string YellowTimeText => Metric(RouteMetrics?.YellowTimePercent, "%");
-    public string RedTimeText => Metric(RouteMetrics?.RedTimePercent, "%");
+    public string GreenTimeText => Metric(RouteMetrics?.GreenTimePercent, " %");
+    public string YellowTimeText => Metric(RouteMetrics?.YellowTimePercent, " %");
+    public string RedTimeText => Metric(RouteMetrics?.RedTimePercent, " %");
     public string AverageDeviationText => Metric(RouteMetrics?.AverageDeviationM, " m");
     public string MaximumDeviationText => Metric(RouteMetrics?.MaximumDeviationM, " m");
     public RelayCommand PlayPauseCommand { get; }

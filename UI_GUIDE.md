@@ -1,4 +1,4 @@
-# FPV Training Assistant — UI guide (Stages 4–8)
+# FPV Training Assistant — UI guide (Stages 4–9)
 
 ## Start the application
 
@@ -38,7 +38,7 @@ vertically; the shell and navigation remain visible.
 
 | Navigation | Current behavior |
 | --- | --- |
-| Import session | Opens the start/import screen. Choose JSON file or the header Import session action opens the standard Windows picker. Ctrl+O is also bound to import. |
+| Import session | Opens the start/import screen. Import Session or the header Import session action opens the standard Windows picker. Ctrl+O is also bound to import. |
 | Session result | Available after successful analysis; returns to the current result. Disabled before a result exists and during processing. |
 | Trajectory | Enabled after analysis with at least two telemetry samples. Opens top-down replay; also available through View trajectory on Session result. |
 | History | Enabled when local storage initializes, even without a current import. Browse operators, reopen snapshots and compare score progress. |
@@ -51,7 +51,7 @@ filter; an all-files filter is also available.
 
 ## Import workflow
 
-1. Choose Import session or Choose JSON file and select a JSON document.
+1. Choose Import Session on the page or Import session in the header and select a JSON document.
 2. The application displays the chosen file name/path and a busy indicator.
 3. SessionImportService performs the existing structural and semantic checks.
 4. ExerciseProfileProvider looks up an exact ProfileId/ProfileVersion/ExerciseType
@@ -316,10 +316,11 @@ session with context also opens the existing mock through Open 3D Replay. Neithe
 requires the original JSON file. The future real external launcher would need an
 explicit file export/reconstruction; that is not included.
 
-For a short progress demonstration import history_progress_01.json through
-history_progress_03.json. Their recorded events produce 56.00, 82.67 and 100.00 for
-one synthetic operator on different dates. They do not bypass scoring by supplying
-assistant scores. Existing obstacle/target fixtures retain 82.67/90.00.
+For the final progress demonstration import Demo/06_history_progress_01.json through
+Demo/08_history_progress_03.json and select demo-operator-01. Their recorded events
+produce 56.00, 82.67 and 100.00 on different dates, without supplied assistant scores.
+The older sibling history_progress files remain regression inputs. Existing
+obstacle/target baselines retain 82.67/90.00.
 
 Stage 6 verification: build has 0 warnings/errors; 395/395 tests pass. Live checks
 covered fresh empty history, automatic saves, both contract versions, duplicates,
@@ -358,6 +359,27 @@ route/parameter changes, activation, unsaved/reset protection and a complete res
 were checked in WPF. Historical v1 scores remain 82.67/90.00; new mock/trajectory
 views used saved 2x and panel defaults. See
 [SETTINGS_CONFIGURATION.md](SETTINGS_CONFIGURATION.md) for detailed behavior and evidence.
+
+## Final usability review (Stage 9)
+
+Dark dropdowns and selected table rows now share the application palette. Common
+text has an explicit Segoe UI font; layouts retain scrollable detail panels. The
+invalid-session card is above the import action card, so its severity, code, path,
+message and file name are visible immediately, including at minimum window size.
+Parser exception details are not shown in the normal invalid-JSON message.
+
+Settings uses friendly criterion/damage labels, concise validation, a visible
+loading/saving status and two-decimal percentage contributions. Blank completion
+times are labeled required rather than suggesting an invalid zero default.
+The mock keeps a visible reticle with compact HUD rows at minimum height and
+shortens long minimap labels while retaining full IDs in the entity panel/tooltips.
+
+Normal, minimum and maximized layouts were checked in WPF, including all screenshot
+targets in DEMO_SCENARIOS.md. All six laboratory scenarios and a full restart passed:
+history, synthetic operator metadata, active profile and replay defaults survived;
+historical result/trajectory/mock reopened. Final automated suite: 465/465 passing;
+build: 0 warnings/errors. QUALITY_REVIEW.md records measured workload/resource
+review and limits; README.md and DEFENSE_SUMMARY.md are the final entry points.
 
 ## Current limits
 

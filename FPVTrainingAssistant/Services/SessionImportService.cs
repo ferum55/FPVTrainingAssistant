@@ -49,7 +49,7 @@ public sealed class SessionImportService : ISessionImportService
         }
         catch (JsonException exception)
         {
-            return Failure("InvalidJson", exception.Path ?? "$", "Invalid JSON or incompatible field value: " + exception.Message);
+            return Failure("InvalidJson", exception.Path ?? "$", "The file is not valid JSON or contains an incompatible field value.");
         }
         catch (FileNotFoundException)
         {

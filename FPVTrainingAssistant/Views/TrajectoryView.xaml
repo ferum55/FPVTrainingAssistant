@@ -77,7 +77,7 @@
                     </Button>
                     <Button Content="Step forward" Command="{Binding StepForwardCommand}" Padding="10,6" Margin="0,0,14,0" />
                     <ComboBox ItemsSource="{Binding PlaybackSpeeds}" SelectedItem="{Binding PlaybackSpeed, Mode=TwoWay}" Width="70" VerticalContentAlignment="Center" AutomationProperties.Name="Playback speed">
-                        <ComboBox.ItemTemplate><DataTemplate><TextBlock Text="{Binding StringFormat={}{0}x}" Foreground="Black" /></DataTemplate></ComboBox.ItemTemplate>
+                        <ComboBox.ItemTemplate><DataTemplate><TextBlock Text="{Binding StringFormat={}{0}x}" Foreground="{StaticResource TextBrush}" /></DataTemplate></ComboBox.ItemTemplate>
                     </ComboBox>
                 </StackPanel>
             </DockPanel>

@@ -48,7 +48,7 @@ public sealed class SettingsViewModel : ViewModelBase
     public ProfileEditorViewModel? Draft { get=>_draft;private set {SetProperty(ref _draft,value);OnPropertyChanged(nameof(HasProfile));CommandsChanged();} }
     public bool HasProfile=>Draft is not null;
     public bool HasPendingSelection=>_pending is not null;
-    public IReadOnlyList<string> ValidationIssues { get=>_issues;private set {SetProperty(ref _issues,value);OnPropertyChanged(nameof(HasValidationIssues));} }
+    public IReadOnlyList<string> ValidationIssues { get=>_issues;private set {SetProperty(ref _issues,value.Select(FriendlyIssue).ToArray());OnPropertyChanged(nameof(HasValidationIssues));} }
     public bool HasValidationIssues=>ValidationIssues.Count>0;
     public string Message { get=>_message;private set {SetProperty(ref _message,value);OnPropertyChanged(nameof(HasMessage));} }
     public bool HasMessage=>!string.IsNullOrEmpty(Message);
@@ -101,6 +101,17 @@ public sealed class SettingsViewModel : ViewModelBase
     private void DraftChanged(object? sender,PropertyChangedEventArgs e)=>CommandsChanged();
     private void ClearPending() {_pending=null;OnPropertyChanged(nameof(HasPendingSelection));CommandsChanged();}
     private void AppEdited()=>HasUnsavedApplicationSettings=true;
+    private static string FriendlyIssue(string issue) => issue switch
+    {
+        "The profile has no enabled criteria or positive total weight." or "The profile has no enabled criteria." => "At least one criterion must be enabled with a positive weight.",
+        "CompletionTime requires TargetTimeSec > 0 and MaximumTimeSec > TargetTimeSec." => "Target time must be positive. Maximum time must be greater than target time.",
+        "Every enabled criterion must have a positive weight." => "Each enabled criterion needs a weight greater than zero.",
+        "PenaltyPerCollision must be nonnegative." => "Penalty per collision cannot be negative.",
+        "YellowZoneFactor must be between 0 and 1." => "Yellow-zone contribution must be between 0 and 1.",
+        "Configured DamageScore values must be between 0 and 100." => "Damage scores must be between 0 and 100.",
+        "The reference route has no non-zero X/Y segment." => "The route needs at least two different horizontal positions.",
+        _ => issue
+    };
     private void CommandsChanged()
     {RefreshCommand?.RaiseCanExecuteChanged();SaveVersionCommand?.RaiseCanExecuteChanged();ActivateCommand?.RaiseCanExecuteChanged();ResetCommand?.RaiseCanExecuteChanged();DiscardAndSwitchCommand?.RaiseCanExecuteChanged();SaveApplicationCommand?.RaiseCanExecuteChanged();}
     private async Task SaveVersionAsync()

@@ -247,8 +247,8 @@ repository and is not performed here:
    simulator mode isolation. Add a source exporter only as separately authorized
    integration work after verifying actual simulator data/units.
 
-Route geometry currently resides in the assistant's matching in-memory exercise
-profile, not in the session JSON. A future simulator minimap can show a route only
+Route geometry resides in the assistant's exact versioned exercise profile, now
+persisted alongside history, not in the session JSON. A future simulator minimap can show a route only
 when its own compatible profile/scenario catalog supplies that geometry. This
 stage does not add a route snapshot or invent environment/archetype assets.
 

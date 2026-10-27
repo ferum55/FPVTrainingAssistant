@@ -207,3 +207,18 @@ saving preferences does not mutate a running replay. After a complete restart,
 manual verification opened an old historical session at stored 2x with both panels
 initially hidden. Profile activation did not change historical scores or geometry.
 SETTINGS_CONFIGURATION.md records versioning/migration and 436/436 tests.
+
+## Final review (Stage 9)
+
+The laboratory mock remains the selected integration. Shared dark selectors,
+compact HUD rows and scaled reticle/drone symbols were checked at normal, minimum
+1100×700 logical size and maximized. Long entity labels are shortened on the map;
+the panel retains the full ID with a tooltip. Missing tracks have intentional text.
+No transform, sensor, camera or entity-state calculation changed.
+
+The chronological event boundary now uses binary search and updates only crossed
+rows plus the former/current latest row. Unchanged intervals produce no row-status
+notifications; simultaneous events and backward seeks are regression-tested.
+Closing still stops the timer and releases subscriptions. Stage 9 repeated both
+final 1.1 fixtures and reopened saved replay after a complete restart. Final suite:
+465/465 tests, build 0 warnings/errors. QUALITY_REVIEW.md records evidence/limits.

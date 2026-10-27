@@ -244,3 +244,19 @@ schema. Stage 7 now edits profile versions and saved replay defaults; existing
 controllers retain their time/speed when defaults change. A newly constructed
 trajectory uses the saved speed. No historical route/score snapshot is recalculated.
 SETTINGS_CONFIGURATION.md records migration, exact-version behavior and 436/436 tests.
+
+## Final review (Stage 9)
+
+Shared dark speed selectors and percentage strings with two decimals and a space
+before % improve presentation. The existing frozen static drawing cache and
+resize invalidation remain unchanged; only current marker/state changes per tick.
+MainWindow normal/minimum/maximized layouts, heading, legend, zones and playback
+were checked again. TargetMission continues to explain absent route geometry.
+The finite red band still represents visual context, not a new scoring boundary.
+
+FinalReviewTests adds a full 6001-sample/600-event JSON/SQLite/replay round trip,
+including 3000 mock seeks without replacing static trajectory points. These
+headless observations are separate from the historical WPF 6000-sample check
+above and are not a frame-rate guarantee. QUALITY_REVIEW.md records measured
+timings, resources and final 465/465 tests. Historical trajectory and stored
+replay defaults also survived the final complete restart.

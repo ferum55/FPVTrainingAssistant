@@ -172,6 +172,41 @@ settings/version preservation and both final mock ViewModels. It retains baselin
 and invalid argument handling. Existing 436 tests are retained; Stage 8 adds 26,
 for **462/462 passing**. Solution build: **0 warnings, 0 errors**.
 
-Stage 8 is complete. Stage 9 may address general visual polish, broader performance
-and usability review, and final defense/report preparation. No real simulator
-integration, video recording, cloud backend or authentication is implemented.
+Stage 8 is complete. Stage 9 final polish, performance/usability review and defense
+documentation are also complete; see QUALITY_REVIEW.md and DEFENSE_SUMMARY.md.
+No real simulator integration, video recording, cloud backend or authentication
+is implemented. The Stage 8 command counts above are its historical delivery record.
+
+## Final Stage 9 verification
+
+The six scenarios were repeated in the running WPF application on fresh isolated
+storage after the final review changes:
+
+| Scenario | Result | Final observed outcome |
+| --- | --- | --- |
+| 1 — valid import | PASS | 01 accepted, score 100.00, v1 resolved and saved to History. |
+| 2 — invalid import | PASS | 02 showed RequiredField / $.sessionId / missing-field message immediately at minimum size; History remained empty; the next valid import succeeded. |
+| 3 — obstacle analysis | PASS | 03 produced 77.42 with checkpoint 66.67, route 82.50, collision 80 and completion 100; trajectory and 80/5/15% zone metrics remained available. |
+| 4 — target analysis | PASS | 04 produced 90.00 with hit/damage evidence; 05 produced 17.50 with false confirmation, missing hit and mission failure. |
+| 5 — explainability | PASS | Criterion measurements/explanations, mistake evidence and prioritized recommendations were readable in the result cards. |
+| 6 — history | PASS | Demo Operator had three sessions with 56.00/82.67/100.00, average 79.56 and best/latest 100.00; saved result/trajectory/mock reopened. |
+
+Both final 1.1 replay fixtures opened the mock with recorded entities/events.
+Seek, camera switching and minimap/event-log show/hide worked. Main and mock
+windows were reviewed at normal/minimum/maximized sizes. All ten screenshot
+targets were opened/reviewed; captures remain outside Git and no report was edited.
+At minimum size, the validation card is now first and the compact FPV HUD retains
+its central reticle. For a report, scroll to the relevant result/criteria section
+and prefer normal/maximized size for detailed screenshots.
+
+After full shutdown/restart with the same isolated directory, synthetic operator
+metadata (Demo Operator / Synthetic final review), nine sessions, active obstacle
+v2 (collision penalty 40), 2x speed, minimap off and event log on were retained.
+A v1 historical result, 2x trajectory and stored Contract 1.1 mock opened. Read-only
+inspection confirmed schema 2, all nine valid joins and zero foreign-key violations.
+The normal per-user database was untouched. Profile v1 configurations/results
+remain unchanged; activating v2 does not substitute it for v1 imports.
+
+Final suite: 465/465 passing (462 retained plus three Stage 9 cases), build with
+0 warnings/errors. Baselines remain 82.67/90.00. Performance/resource evidence and
+accepted limitations are in QUALITY_REVIEW.md; README.md is the setup entry point.

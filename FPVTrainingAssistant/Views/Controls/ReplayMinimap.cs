@@ -43,7 +43,8 @@ public sealed class ReplayMinimap : FrameworkElement
         {
             var point = ToPoint(entity.Position);
             drawing.DrawRectangle(Brush("WarningBrush"), null, new Rect(point.X - 4, point.Y - 4, 8, 8));
-            Text(drawing, entity.EntityId, new(Math.Min(point.X + 6, Math.Max(0, ActualWidth - 120)), point.Y + 6));
+            var label = entity.EntityId.Length > 22 ? entity.EntityId[..19] + "…" : entity.EntityId;
+            Text(drawing, label, new(Math.Clamp(point.X + 6, 0, Math.Max(0, ActualWidth - 130)), Math.Clamp(point.Y + 6, 0, Math.Max(0, ActualHeight - 16))));
         }
     }
 

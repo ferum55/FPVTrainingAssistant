@@ -4,14 +4,17 @@ The product requirements and boundaries are recorded in [PROJECT_CONTEXT.md](PRO
 Each stage should leave a buildable application. Keep changes small, use MVVM,
 and avoid adding dependencies before they are needed.
 
-Stages 1 through 8, including Stages 5.5A/5.5B, are delivered: the scaffold, domain models, contracts,
+All stages 1 through 9, including Stages 5.5A/5.5B, are complete: the scaffold, domain models, contracts,
 JSON import/validation, deterministic analysis, WPF review UI, top-down trajectory
 and telemetry replay, replay-capable contract 1.1, assistant-side simulator handoff,
 an interactive simulator-interface mock, synthetic examples, and focused xUnit tests.
 SQLite snapshots, operator metadata, history/reopening and native score progress
 are also delivered, along with versioned profile configuration and replay preferences.
 Stage 8 adds the final synthetic demo dataset and complete laboratory scenario
-verification. Real simulator integration and Stage 9 remain planned.
+verification. Stage 9 completes usability/layout polish, measured workload/resource
+review and defense documentation. Real simulator integration remains outside the
+completed university prototype scope. Historical delivery counts below are retained;
+the final suite has 465 passing tests and the build has 0 warnings/errors.
 
 ## Stage 1 - project structure and models
 
@@ -86,8 +89,8 @@ mistakes, recommendations, and chronological events. UI_GUIDE.md documents usage
 profile identities/route, architecture, verification, and limits. All four requested
 fixtures were checked in the running WPF application, including recovery after
 invalid imports. Stage 4 verification: build has 0 warnings/errors; all 203 tests
-pass, retaining the previous 177. Future navigation stays disabled; no Stage 5+
-functionality is included.
+pass, retaining the previous 177. At that delivery, future navigation was disabled
+and Stage 5+ functionality was not yet included; later stages now provide it.
 
 ## Stage 5 - trajectory visualization/replay
 
@@ -262,9 +265,9 @@ and clean schema-2 storage. A full process restart retained the nine saved sessi
 history/progress, v1 results, trajectory, stored 1.1 mock data, active v2 configuration
 and saved replay defaults. DEMO_SCENARIOS.md records the manifest, actual outcomes,
 clean reset/restart procedure, short walkthrough and screenshot checklist. Report
-files and DroneDiploma were not changed. Stage 9 is not started.
+files and DroneDiploma were not changed. Stage 9 was not started at that delivery.
 
-## Stage 9 - final polish and laboratory demonstration
+## Stage 9 - final polish and laboratory demonstration (complete)
 
 - Improve navigation, error messages, empty states, readability, and replay use.
 - Review realistic import/analysis performance and local storage reliability.
@@ -276,3 +279,27 @@ files and DroneDiploma were not changed. Stage 9 is not started.
 
 Acceptance: the .NET 10 application builds, relevant automated checks pass, and
 the instructor can complete the laboratory demonstration using prepared data.
+
+Completed after the final build, full tests, documentation review and running WPF
+verification. Shared dark controls/selected rows, typography, early validation,
+friendly Settings labels/messages, consistent percentage presentation and compact
+mock layout preserve all existing features. Event-log updates now use binary
+boundaries and notify changed rows; static map geometry remains cached. No scoring
+formula, contract, database schema or Demo fixture changed.
+
+README.md provides setup/run/test/data guidance; QUALITY_REVIEW.md ties all eight
+quality attributes to implementation evidence and honest limits, including measured
+6001-sample/600-event processing. DEFENSE_SUMMARY.md supplies the concise defense
+workflow. Project documents distinguish historical deliveries from current features.
+
+All six Lab 9 scenarios passed again on isolated storage. Screenshot targets and
+normal/minimum/maximized layouts were reviewed. A complete restart retained operator
+metadata, nine sessions, active profile and replay defaults; stored result, 2D
+trajectory and 1.1 mock reopened. Final commands: build 0 warnings/errors, tests
+465/465 (462 retained plus three focused cases), git diff --check passed. Baselines
+remain 82.67/90.00. DroneDiploma and report files are unchanged; no commit/push.
+
+All implementation stages are finished. Accepted prototype limits, rather than
+unfinished stages, include real simulator/Unreal integration, video, cloud,
+authentication/application encryption, graphical route dragging, automatic
+historical reanalysis and session deletion/export UI.

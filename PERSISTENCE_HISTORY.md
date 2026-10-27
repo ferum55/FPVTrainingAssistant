@@ -233,9 +233,12 @@ database and temporary inspection/capture helpers are outside Git.
 
 ## Remaining scope
 
-Stages 6 and 7 are complete after build, tests and restart verification. Stage 7
-provides profile/settings editing and the tested 1 -> 2 migration; 436/436 tests
-pass including all 395 Stage 6 cases. Explicit reanalysis, later schema migrations,
+Stages 6–9 are complete after build, tests and restart verification. Stage 7
+provided profile/settings editing and the tested 1 -> 2 migration, with 436/436
+tests at that delivery including all 395 Stage 6 cases. The final suite has 465
+passing cases; QUALITY_REVIEW.md records the final isolated-data restart with
+operator metadata, active profile, settings and all saved replay data retained.
+Schema remains 2; Stage 9 adds no indexes or migration. Explicit reanalysis, later schema migrations,
 database backup UI, history deletion/export and source-file reconstruction remain
 unimplemented. SETTINGS_CONFIGURATION.md records preservation of the original
 Stage 6 history through the real migration and configuration changes.

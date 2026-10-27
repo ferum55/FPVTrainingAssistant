@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:FPVTrainingAssistant"
         mc:Ignorable="d"
         Title="FPV Training Assistant" Width="1300" Height="800" MinWidth="1080" MinHeight="680"
-        WindowStartupLocation="CenterScreen" Background="{StaticResource WindowBrush}" FontFamily="Segoe UI">
+        WindowStartupLocation="CenterScreen" Background="{StaticResource WindowBrush}" FontFamily="Segoe UI" UseLayoutRounding="True">
     <Window.InputBindings><KeyBinding Key="O" Modifiers="Control" Command="{Binding ImportCommand}" /></Window.InputBindings>
     <Grid>
         <Grid.ColumnDefinitions><ColumnDefinition Width="224" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>

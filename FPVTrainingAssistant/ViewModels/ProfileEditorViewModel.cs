@@ -82,7 +82,7 @@ public sealed class ProfileEditorViewModel : ViewModelBase, IDisposable
     {
         var weights=Criteria.Select(c=>double.TryParse(c.WeightText,System.Globalization.NumberStyles.Float,System.Globalization.CultureInfo.InvariantCulture,out var w) && double.IsFinite(w) && w>0 && c.IsEnabled ? w : 0).ToArray();
         var max=weights.DefaultIfEmpty().Max();var sum=max>0 ? weights.Sum(w=>w/max) : 0;
-        for(var i=0;i<Criteria.Count;i++) Criteria[i].Contribution=sum>0 ? (weights[i]/max/sum*100).ToString("F1",System.Globalization.CultureInfo.InvariantCulture)+"%" : "—";
+        for(var i=0;i<Criteria.Count;i++) Criteria[i].Contribution=sum>0 ? (weights[i]/max/sum*100).ToString("F2",System.Globalization.CultureInfo.InvariantCulture)+" %" : "—";
     }
     public void Dispose()
     {

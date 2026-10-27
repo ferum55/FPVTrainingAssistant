@@ -8,7 +8,7 @@ public sealed class CriterionParameterEditor(string key, string label, string va
     private string _value = value;
     public string Key { get; } = key;
     public string Label { get; } = label;
-    public string DefaultHint { get; } = "Default when blank: " + defaultValue;
+    public string DefaultHint { get; } = key is "TargetTimeSec" or "MaximumTimeSec" ? "Required; enter seconds." : "Default when blank: " + defaultValue;
     public string ValueText { get => _value; set => SetProperty(ref _value,value); }
 }
 
@@ -25,7 +25,9 @@ public sealed class CriterionEditorViewModel : ViewModelBase
     }
     public string CriterionId => _source.CriterionId;
     public string Name => _source.Name;
+    public string DisplayName => DisplayText.Name(Name);
     public string Description => _source.Description;
+    public string DisplayDescription => DisplayText.Name(Description);
     public string RuleType => _source.RuleType;
     public bool IsEnabled { get=>_enabled;set=>SetProperty(ref _enabled,value); }
     public string WeightText { get=>_weight;set=>SetProperty(ref _weight,value); }
@@ -60,8 +62,8 @@ public sealed class CriterionEditorViewModel : ViewModelBase
         RuleTypes.CollisionAvoidance=>[("PenaltyPerCollision","Penalty per collision",20)],
         RuleTypes.RouteAdherence=>[("YellowZoneFactor","Yellow-zone contribution (0–1)",0.5)],
         RuleTypes.CompletionTime=>[("TargetTimeSec","Target time (s)",0),("MaximumTimeSec","Maximum time (s)",0)],
-        RuleTypes.TargetDamage=>[("DamageScore_Critical","Critical category score",100),("DamageScore_Engine","Engine category score",90),
-            ("DamageScore_Weapon","Weapon category score",80),("DamageScore_Track","Track category score",70),("DamageScore_Hull","Hull category score",60),("DamageScore_Default","Other category score",50)],
+        RuleTypes.TargetDamage=>[("DamageScore_Critical","Critical damage score",100),("DamageScore_Engine","Engine damage score",90),
+            ("DamageScore_Weapon","Weapon damage score",80),("DamageScore_Track","Track damage score",70),("DamageScore_Hull","Hull damage score",60),("DamageScore_Default","Default damage score",50)],
         _=>[]
     };
 }

@@ -3,11 +3,21 @@
         <StackPanel Margin="32,28">
             <TextBlock Text="A consistent view of every training session." FontSize="26" FontWeight="SemiBold" Margin="0,0,0,9" />
             <TextBlock Text="Import a training session JSON file to analyze operator performance." Foreground="{StaticResource MutedBrush}" Margin="0,0,0,28" />
+            <Border Style="{StaticResource Card}" BorderBrush="{StaticResource ErrorBrush}" Margin="0,0,0,18" Visibility="{Binding HasFailure, Converter={StaticResource BoolVisibility}}">
+                <StackPanel>
+                    <TextBlock Text="{Binding FailureHeading}" Style="{StaticResource SectionTitle}" Foreground="{StaticResource ErrorBrush}" />
+                    <TextBlock Text="{Binding FailureMessage}" Margin="0,0,0,10" /><TextBlock Text="{Binding FileName}" Style="{StaticResource MutedText}" Margin="0,0,0,12" />
+                    <TextBlock Text="{Binding TechnicalError}" Foreground="{StaticResource ErrorBrush}" Margin="0,0,0,15" Visibility="{Binding HasTechnicalError, Converter={StaticResource BoolVisibility}}" />
+                    <ItemsControl ItemsSource="{Binding Issues}" ItemTemplate="{StaticResource ValidationIssueTemplate}" />
+                    <Button Content="Choose another file" Command="{Binding ImportCommand}" HorizontalAlignment="Left" Margin="0,12,0,0" />
+                </StackPanel>
+            </Border>
             <Border Style="{StaticResource Card}" Padding="30" Margin="0,0,0,18">
                 <StackPanel>
                     <TextBlock Text="Start a session review" FontSize="22" FontWeight="SemiBold" Margin="0,0,0,10" />
                     <TextBlock Text="Choose a structured session file. The assistant validates the data, applies the matching exercise profile and explains the results." Foreground="{StaticResource MutedBrush}" MaxWidth="650" HorizontalAlignment="Left" Margin="0,0,0,23" />
-                    <Button Content="_Choose JSON file" Command="{Binding ImportCommand}" Style="{StaticResource PrimaryButton}" HorizontalAlignment="Left" />
+                    <Button Content="_Import Session" Command="{Binding ImportCommand}" Style="{StaticResource PrimaryButton}" HorizontalAlignment="Left" />
+                    <TextBlock Text="For a demonstration, choose a numbered file in TestSessions / Demo." Style="{StaticResource MutedText}" Margin="0,12,0,0" />
                     <StackPanel Margin="0,20,0,0" Visibility="{Binding IsBusy, Converter={StaticResource BoolVisibility}}">
                         <TextBlock Text="Processing session — please wait..." Foreground="{StaticResource AccentBrush}" Margin="0,0,0,10" />
                         <ProgressBar IsIndeterminate="True" Height="4" Foreground="{StaticResource AccentBrush}" Background="{StaticResource InsetBrush}" BorderThickness="0" />
@@ -15,15 +25,6 @@
                     <Border Background="{StaticResource InsetBrush}" CornerRadius="6" Padding="13" Margin="0,20,0,0" Visibility="{Binding HasFile, Converter={StaticResource BoolVisibility}}">
                         <StackPanel><TextBlock Text="{Binding FileName}" FontWeight="SemiBold" /><TextBlock Text="{Binding FilePath}" Style="{StaticResource MutedText}" Margin="0,5,0,0" /></StackPanel>
                     </Border>
-                </StackPanel>
-            </Border>
-            <Border Style="{StaticResource Card}" BorderBrush="{StaticResource ErrorBrush}" Margin="0,0,0,18" Visibility="{Binding HasFailure, Converter={StaticResource BoolVisibility}}">
-                <StackPanel>
-                    <TextBlock Text="{Binding FailureHeading}" Style="{StaticResource SectionTitle}" Foreground="{StaticResource ErrorBrush}" />
-                    <TextBlock Text="{Binding FailureMessage}" Margin="0,0,0,15" />
-                    <TextBlock Text="{Binding TechnicalError}" Foreground="{StaticResource ErrorBrush}" Margin="0,0,0,15" Visibility="{Binding HasTechnicalError, Converter={StaticResource BoolVisibility}}" />
-                    <ItemsControl ItemsSource="{Binding Issues}" ItemTemplate="{StaticResource ValidationIssueTemplate}" />
-                    <Button Content="Choose another file" Command="{Binding ImportCommand}" HorizontalAlignment="Left" Margin="0,12,0,0" />
                 </StackPanel>
             </Border>
             <Border Style="{StaticResource Card}"><Grid>

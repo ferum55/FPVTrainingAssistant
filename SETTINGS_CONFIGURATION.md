@@ -90,10 +90,11 @@ The editor presents named numeric fields rather than parameter JSON:
 | RouteAdherence | Yellow-zone contribution -> YellowZoneFactor. |
 | CompletionTime | Target time / maximum time -> TargetTimeSec / MaximumTimeSec. |
 | TargetIdentification, TargetHit, MissionSuccess | Enabled and weight. |
-| TargetDamage | Critical, engine, weapon, track, hull and other category scores -> the six DamageScore_* parameters. |
+| TargetDamage | Critical, engine, weapon, track, hull and default damage scores -> the six DamageScore_* parameters. |
 
 Blank parameter fields remove that explicit override and show the documented
-engine fallback as a hint. Existing unknown parameter keys are preserved. Numeric
+engine fallback as a hint. Completion times are required instead; blank values
+cannot form a valid enabled CompletionTime criterion. Existing unknown parameter keys are preserved. Numeric
 fields use English decimal-point syntax; raw invalid input stays visible and is
 rejected on save rather than silently retaining an older value. Current rules use
 named parameters, not the generic Threshold. An existing non-null threshold is
@@ -195,8 +196,12 @@ Temporary picker/inspection/capture files and runtime SQLite data remain outside
 
 ## Remaining work
 
-Stage 7 is complete; Stage 8 final fixtures/laboratory coverage and Stage 9 polish
-remain separate tasks. Profile-family creation, adding/removing criterion rules,
+Stages 7–9 are complete: final fixtures and laboratory coverage are in
+DEMO_SCENARIOS.md, and final usability/resource evidence is in QUALITY_REVIEW.md.
+Stage 9 adds friendly criterion/damage labels, required completion-time hints,
+concise validation, two-decimal percentage contributions and shared dark controls;
+internal parameter keys, stored weights and scoring semantics remain unchanged.
+Profile-family creation, adding/removing criterion rules,
 graphical route editing, automatic reanalysis, manual score editing, history deletion,
 external simulator replay, cloud and authentication are not implemented. This editor
 configures the current profiles/rules and creates their new immutable versions.

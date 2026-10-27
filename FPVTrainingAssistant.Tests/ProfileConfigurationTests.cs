@@ -67,7 +67,7 @@ public sealed class ProfileConfigurationTests
         using var draft=new ProfileEditorViewModel(PersistenceTestDatabase.Snapshot().Profile);
         draft.Criteria[0].WeightText="4";
         draft.Criteria[1].WeightText="3";draft.Criteria[2].WeightText="2";draft.Criteria[3].WeightText="1";
-        Assert.Equal(new[]{"40.0%","30.0%","20.0%","10.0%"},draft.Criteria.Select(c=>c.Contribution));
+        Assert.Equal(new[]{"40.00 %","30.00 %","20.00 %","10.00 %"},draft.Criteria.Select(c=>c.Contribution));
         draft.Criteria.Single(c=>c.RuleType==RuleTypes.CollisionAvoidance).Parameters[0].ValueText="35";
         draft.Criteria.Single(c=>c.RuleType==RuleTypes.RouteAdherence).Parameters[0].ValueText="0.25";
         var time=draft.Criteria.Single(c=>c.RuleType==RuleTypes.CompletionTime);

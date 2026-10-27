@@ -164,7 +164,7 @@ time. Provide UI to inspect and edit exercise profiles and evaluation settings.
 Profile edits do not automatically recalculate historical EvaluationResult
 records. Retain the profile version/configuration used for evaluation; a future
 explicit reanalysis operation may generate new results. SessionId is globally
-unique in the assistant database. Future imports reject duplicates by default,
+unique in the assistant database. Imports reject duplicates by default,
 without silently overwriting historical sessions. An explicit replace/reimport
 operation may be considered separately.
 
@@ -273,7 +273,10 @@ The precise source altitude datum and richer exercise-specific target results
 remain future integration details. Damage-zone scores are configurable training
 categories, not claims about real-world effectiveness or simulator exports.
 
-## Initial delivery scope and repository rules
+## Delivery history and repository rules
+
+The following stage records describe their individual deliveries. All stages
+1–9 are now implemented; README.md and QUALITY_REVIEW.md describe the final state.
 
 The first delivery creates only the .NET 10 WPF solution, initial folders, this
 context, the implementation plan, and a Visual Studio/.NET .gitignore, then builds
@@ -284,8 +287,8 @@ The follow-up Stage 1 delivery adds the nine plain domain/data classes, known
 event/exercise name constants, SESSION_CONTRACT.md, and a preliminary synthetic
 contract example in TestSessions. It does not add SessionAnalyzer, an importer,
 full contract validation, SQLite, analysis algorithms, UI functionality, replay,
-history, or configuration UI. The full laboratory fixtures and automated test
-suite remain planned for later stages.
+history, or configuration UI. At that delivery, the full laboratory fixtures and
+automated test suite were still planned; they are now present.
 
 Stage 2 adds asynchronous JSON import, centralized strict/case-tolerant serialization,
 structural and semantic validation with errors/warnings, synthetic fixtures, and
@@ -328,7 +331,8 @@ cached and rescales on viewport resize. The synthetic obstacle route has turns
 and the two main demo fixtures have 21 samples each, preserving score expectations.
 TRAJECTORY_REPLAY.md records mapping, angular interpolation, verification, and
 limits. This is neither video nor 3D replay. History, persistence, progress charts,
-and configuration editing remain planned; History/Settings stay disabled.
+and configuration editing were still planned at that delivery; History/Settings
+were disabled then and are now available through Stages 6/7.
 
 Stage 5.5A adds optional contract 1.1 replay data while retaining 1.0 support.
 Telemetry gains nullable vertical speed, camera tilt/horizontal FOV, pack/cell
@@ -353,7 +357,8 @@ neutral map/visual lookup, recorded transforms/states instead of gameplay AI/phy
 FPV with body-relative camera tilt/horizontal FOV, third person, minimap, event log,
 and synchronized timeline. No simulator code/exporter or 3D rendering is implemented
 here. Static worlds remain simulator-owned; source paths stay outside JSON.
-Stage 6 persistence/history and Stage 7 configuration editing remain planned.
+At that delivery, Stage 6 persistence/history and Stage 7 configuration editing
+were still planned; both are now implemented.
 
 Stage 5.5B changes the laboratory scope to an interactive simulator replay mock
 inside FPVTrainingAssistant. App startup injects MockSimulatorReplayLauncher via
@@ -431,7 +436,8 @@ version/active semantics, validation, migration and manual evidence. Build has
 0 warnings/errors and all 436 tests pass, retaining all 395 previous cases. Real
 WPF checks migrated the Stage 6 database, created both v2 profiles and verified
 active state/preferences after restart, preserved historical replay and unchanged
-82.67/90.00 v1 baselines. Stages 8/9 remain future work; DroneDiploma is unchanged.
+82.67/90.00 v1 baselines. Stages 8/9 were future work at that delivery; DroneDiploma
+is unchanged.
 
 Stage 8 adds the final numbered synthetic dataset in TestSessions/Demo, using
 baseline v1 profiles on clean storage. Contract 1.0 covers import/analysis/2D replay;
@@ -447,8 +453,25 @@ developer --data-directory option selects isolated local storage without changin
 the default per-user path or resetting data. Real WPF verification passed all six
 scenarios and a full restart, retaining history, profiles, settings and both replay
 views. The 436 existing tests plus 26 Stage 8 cases total 462 passing; build has
-0 warnings/errors. No report files or DroneDiploma changes were made. Stage 9 remains
-future work.
+0 warnings/errors. No report files or DroneDiploma changes were made. Stage 9 was
+still future work at that delivery.
+
+Stage 9 completes final usability, layout, performance/resource and defense review.
+Shared dark dropdown/selection styling, explicit typography, early validation
+details, friendly Settings text and compact mock HUD/minimap labels preserve the
+existing workflows. Event-log presentation updates now touch crossed/boundary rows
+instead of notifying every row each tick. Scoring formulas, session contracts,
+schema 2 and Demo fixtures are unchanged. The measured 6001-sample/600-event workflow
+and cached rendering/resource boundaries are recorded in QUALITY_REVIEW.md.
+
+README.md, QUALITY_REVIEW.md and DEFENSE_SUMMARY.md provide final setup, evidence,
+limitations and demonstration guidance. All six Lab 9 scenarios and a complete
+isolated-data restart passed again, retaining metadata, active profile, settings,
+history and both replay views. All 465 tests pass (462 retained plus three Stage 9
+cases); build has 0 warnings/errors. The implementation plan is complete. There is
+no real DroneDiploma/Unreal replay, video, cloud, authentication or application-level
+database encryption; no graphical route dragging or automatic historical reanalysis.
+DroneDiploma and report documents remain unchanged.
 
 Repository: https://github.com/ferum55/FPVTrainingAssistant.git
 

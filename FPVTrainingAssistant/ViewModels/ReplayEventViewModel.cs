@@ -14,8 +14,9 @@ public sealed class ReplayEventViewModel(SessionEvent sessionEvent) : ViewModelB
 
     internal void Update(double time, bool latest)
     {
+        var changed = HasOccurred != (TimeSec <= time) || IsCurrent != latest;
         HasOccurred = TimeSec <= time;
         IsCurrent = latest;
-        OnPropertyChanged(nameof(ProgressText));
+        if (changed) OnPropertyChanged(nameof(ProgressText));
     }
 }

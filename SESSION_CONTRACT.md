@@ -4,8 +4,9 @@
 
 The root JSON object represents one TrainingSession, not a simulator-specific
 envelope. Contract 1.0 remains the supported analytical session format. Contract
-1.1 adds optional telemetry and neutral replay context for a future simulator
-consumer. The importer accepts exactly 1.0 and 1.1; 2.0 and other versions fail
+1.1 adds optional telemetry and neutral replay context used by the assistant-side
+mock and designed for a future external simulator consumer. The importer accepts
+exactly 1.0 and 1.1; 2.0 and other versions fail
 with UnsupportedContractVersion. The TrainingSession default remains 1.0, but
 JSON must always supply the version. Existing 1.0 fixtures remain unchanged.
 

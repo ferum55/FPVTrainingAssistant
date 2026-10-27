@@ -14,6 +14,7 @@ public sealed class SimulatorReplayMockViewModel : ViewModelBase, IDisposable
     private IReadOnlyList<EntityReplayState> _dynamicEntities = [];
     private IReadOnlyList<TelemetryReadout> _telemetry = [];
     private ReplayMinimapFrame _minimapFrame = new(null, []);
+    private int _latestEventIndex = -1;
 
     public SimulatorReplayMockViewModel(TrainingSession session, ExerciseProfile profile, SessionAnalysisResult analysis, ApplicationSettings? preferences = null)
     {
@@ -77,6 +78,7 @@ public sealed class SimulatorReplayMockViewModel : ViewModelBase, IDisposable
     public string EventLogToggleText => IsEventLogVisible ? "Hide Event Log" : "Show Event Log";
     public IReadOnlyList<ReplayEventViewModel> Events { get; }
     public bool HasNoEvents => Events.Count == 0;
+    public bool HasNoDynamicEntities => _entityReplay.Length == 0;
     public IReadOnlyList<EntityReplayState> DynamicEntities { get => _dynamicEntities; private set => SetProperty(ref _dynamicEntities, value); }
     public ReplayMinimapFrame MinimapFrame { get => _minimapFrame; private set => SetProperty(ref _minimapFrame, value); }
     public IReadOnlyList<TelemetryReadout> Telemetry { get => _telemetry; private set => SetProperty(ref _telemetry, value); }
@@ -109,9 +111,22 @@ public sealed class SimulatorReplayMockViewModel : ViewModelBase, IDisposable
     {
         DynamicEntities = Array.AsReadOnly(_entityReplay.Select(e => e.GetStateAtTime(CurrentTimeSec)).ToArray());
         MinimapFrame = new(CurrentReplayState, DynamicEntities);
-        var latest = -1;
-        for (var i = 0; i < Events.Count; i++) if (Events[i].TimeSec <= CurrentTimeSec) latest = i;
-        for (var i = 0; i < Events.Count; i++) Events[i].Update(CurrentTimeSec, i == latest);
+        // Only crossed events and the previous/latest rows need presentation updates.
+        // Upper bound preserves stable ordering when several events share a time.
+        var low = 0; var high = Events.Count;
+        while (low < high)
+        {
+            var middle = low + (high - low) / 2;
+            if (Events[middle].TimeSec <= CurrentTimeSec) low = middle + 1;
+            else high = middle;
+        }
+        var latest = low - 1;
+        if (latest != _latestEventIndex)
+        {
+            for (var i = Math.Max(0, Math.Min(latest, _latestEventIndex)); i <= Math.Max(latest, _latestEventIndex); i++)
+                Events[i].Update(CurrentTimeSec, i == latest);
+            _latestEventIndex = latest;
+        }
         var s = CurrentReplayState;
         Telemetry = Array.AsReadOnly(new[]
         {

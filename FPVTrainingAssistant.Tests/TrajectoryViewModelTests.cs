@@ -73,7 +73,7 @@ public sealed class TrajectoryViewModelTests
         var route = new RouteAnalysisResult(20, 30, 50, 2.5, 8, 8);
         var vm = Create(route: route);
         Assert.Same(route, vm.RouteMetrics);
-        Assert.Equal("20.00%", vm.GreenTimeText);
+        Assert.Equal("20.00 %", vm.GreenTimeText);
         Assert.Equal("2.50 m", vm.AverageDeviationText);
     }
 
