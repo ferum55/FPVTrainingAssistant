@@ -35,11 +35,12 @@ synthetic-obstacle-course/v1 and synthetic-target-mission/v1 profiles if absent.
 Reference points, ordered criteria and parameters are included. An existing exact
 profile/version is never overwritten during seeding.
 
-app_metadata contains schema_version = "1". Repeated initialization is idempotent.
-A populated database without version metadata or with another schema version is
-refused clearly, without replacing its contents. There is no migration framework,
-automatic reset or destructive recovery. Future upgrades must define migrations
-explicitly before accepting another version.
+Stage 6 used app_metadata.schema_version = "1". Stage 7 adds a transactional
+1 -> 2 migration that creates app_settings and preserves all existing data.
+Fresh databases now use version 2; initialization of either supported version is
+idempotent. A populated database without version metadata or with another version
+is refused clearly without resetting its contents. No migration framework or
+destructive recovery is introduced; SETTINGS_CONFIGURATION.md specifies the upgrade.
 
 Initialization failure leaves import, validation, analysis and local replay usable.
 History stays disabled and a visible in-app message explains that sessions cannot
@@ -48,11 +49,13 @@ not expose raw SQL exceptions or stack traces.
 
 ## Relational schema
 
-There are 15 application tables (plus SQLite's internal sequence table):
+Stage 6 defined 15 application tables. Stage 7 adds app_settings, making 16 (plus
+SQLite's internal sequence table):
 
 | Table | Identity and purpose |
 | --- | --- |
 | app_metadata | key; schema version. |
+| app_settings | key; typed replay defaults persisted as invariant string values (Stage 7). |
 | operators | operator_id; optional display_name/notes, created/updated UTC timestamps. |
 | exercise_profiles | (profile_id, version); immutable historical profile identity, name/type/active flag. |
 | reference_points | (profile_id, profile_version, sequence_no); ordered route positions/types/radii. |
@@ -107,10 +110,13 @@ mistake detection or recommendation generation. Saved measured values, explanati
 recommendations, mistakes, route metrics, summary and aggregate metrics are the
 authoritative snapshot. Replay reconstructs transforms, not scores.
 
-Profile edits in a future Stage 7 must create a new version. Saving against an
+Profile edits in Stage 7 create a new version. Saving against an
 existing same version with a different configuration fails clearly rather than
 changing history. A genuinely new profile version can be saved as its own snapshot;
-Stage 6 does not offer profile/version editing controls.
+Settings now provides version creation/activation. Activation changes IsActive
+operational metadata only; evaluation configuration stays immutable and snapshot
+comparison ignores only that mutable flag. Exact imported versions are resolved
+from SQLite without substitution or historical reanalysis.
 
 ## Automatic save, duplicates and atomicity
 
@@ -177,7 +183,8 @@ centered; empty history has a clear message instead of an empty table/chart.
 
 History refreshes whenever it is opened and after metadata updates. New imports
 are visible without restarting. Read/update failures show concise recoverable
-messages. Settings stays disabled; no score editing or session deletion is added.
+messages. Stage 7 enables Settings for versioned configuration and replay defaults;
+no score editing or session deletion is added.
 
 ## Source path and replay
 
@@ -226,8 +233,11 @@ database and temporary inspection/capture helpers are outside Git.
 
 ## Remaining scope
 
-Stage 6 is complete after build, tests and full restart verification. Stage 7
-profile/settings editing, explicit reanalysis, migrations, database backup UI,
-history deletion/export and source-file reconstruction remain unimplemented.
+Stages 6 and 7 are complete after build, tests and restart verification. Stage 7
+provides profile/settings editing and the tested 1 -> 2 migration; 436/436 tests
+pass including all 395 Stage 6 cases. Explicit reanalysis, later schema migrations,
+database backup UI, history deletion/export and source-file reconstruction remain
+unimplemented. SETTINGS_CONFIGURATION.md records preservation of the original
+Stage 6 history through the real migration and configuration changes.
 Normal local SQLite files are not encrypted by this prototype; Windows user-folder
 permissions provide the existing local boundary. No cloud or authentication is added.

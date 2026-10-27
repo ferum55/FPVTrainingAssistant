@@ -4,7 +4,7 @@ using static FPVTrainingAssistant.Data.SqliteData;
 
 namespace FPVTrainingAssistant.Data;
 
-public sealed class ExerciseProfileRepository(DatabaseConnectionFactory connections)
+public sealed partial class ExerciseProfileRepository(DatabaseConnectionFactory connections) : IExerciseProfileRepository
 {
     public Task<ExerciseProfile?> LoadAsync(string id, int version) => Task.Run(() =>
     {
@@ -53,7 +53,8 @@ public sealed class ExerciseProfileRepository(DatabaseConnectionFactory connecti
     internal static bool SameSnapshot(ExerciseProfile a, ExerciseProfile b) => Canonical(a) == Canonical(b);
     private static string? Canonical(ExerciseProfile p) => Json(new
     {
-        p.ProfileId, p.Version, p.Name, p.ExerciseType, p.IsActive,
+        // Activation is operational metadata; evaluation configuration stays immutable.
+        p.ProfileId, p.Version, p.Name, p.ExerciseType,
         Points = p.ReferencePoints.OrderBy(x => x.SequenceNo),
         Criteria = p.Criteria.Select(x => new { x.CriterionId,x.Name,x.Description,x.Weight,x.RuleType,x.IsEnabled,x.Threshold,
             Parameters = x.Parameters?.OrderBy(k => k.Key, StringComparer.Ordinal).ToArray() })

@@ -4,13 +4,18 @@ namespace FPVTrainingAssistant.Services;
 
 internal static class AnalysisProfileValidator
 {
-    public static EvaluationCriterion[] Validate(TrainingSession session, ExerciseProfile profile)
+    public static EvaluationCriterion[] Validate(TrainingSession session, ExerciseProfile profile, bool requireActive = true)
     {
         if (session.ProfileId != profile.ProfileId) Fail("Session ProfileId does not match the exercise profile.");
         if (session.ProfileVersion != profile.Version || profile.Version <= 0) Fail("Session/profile version mismatch or invalid version.");
         if (session.ExerciseType != profile.ExerciseType) Fail("Session and profile exercise types must match exactly.");
+        return ValidateConfiguration(profile, requireActive);
+    }
+
+    public static EvaluationCriterion[] ValidateConfiguration(ExerciseProfile profile, bool requireActive = true)
+    {
         if (profile.ExerciseType is not (ExerciseTypes.ObstacleCourse or ExerciseTypes.TargetMission)) Fail("Analysis supports only ObstacleCourse and TargetMission.");
-        if (!profile.IsActive) Fail("The exercise profile is inactive.");
+        if (requireActive && !profile.IsActive) Fail("The exercise profile is inactive.");
         if (string.IsNullOrWhiteSpace(profile.Name)) Fail("The exercise profile requires a name.");
         if (profile.Criteria is null || profile.Criteria.Count == 0) Fail("The profile has no enabled criteria.");
 

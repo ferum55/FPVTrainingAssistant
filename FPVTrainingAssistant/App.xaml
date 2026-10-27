@@ -10,6 +10,7 @@
             <DataTemplate DataType="{x:Type vm:SessionResultViewModel}"><views:SessionResultView /></DataTemplate>
             <DataTemplate DataType="{x:Type vm:TrajectoryViewModel}"><views:TrajectoryView /></DataTemplate>
             <DataTemplate DataType="{x:Type vm:HistoryViewModel}"><views:HistoryView /></DataTemplate>
+            <DataTemplate DataType="{x:Type vm:SettingsViewModel}"><views:SettingsView /></DataTemplate>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

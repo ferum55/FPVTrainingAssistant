@@ -407,7 +407,31 @@ version policy, local storage, fallback and manual restart verification. Build h
 shutdown/restart preserved result, operator metadata, 2D trajectory and 1.1 mock
 replay. Three new synthetic progress fixtures produce 56.00/82.67/100.00 through
 their events; established obstacle/target scores remain 82.67/90.00. No scoring
-formula changed. Stage 7 settings/profile editing remains planned.
+formula changed. At the end of Stage 6, settings/profile editing remained planned.
+
+Stage 7 enables Settings independently of a loaded session after storage is ready.
+The editor works on detached copies, exposes existing criterion weights/enabled
+state and named parameters, and edits route points/radii in a table with add/remove/
+reorder commands. It reuses existing configuration/geometry validation and tracks
+unsaved changes with explicit discard/keep and reset actions. Save as New Version
+creates the next version atomically; prior evaluation configurations remain intact.
+Activation changes only operational IsActive flags and selects one version per
+logical ProfileId without updating saved sessions or analysis results.
+
+The provider loads the exact stored ProfileId/ProfileVersion for future imports,
+including explicitly requested inactive versions through AnalyzeRequestedVersion.
+This entry point shares the existing scoring body; the original Analyze API keeps
+its active-only guard. No formulas changed and no automatic reanalysis exists.
+ApplicationSettings stores replay speed and minimap/event-log defaults in SQLite;
+the non-destructive 1 -> 2 migration adds app_settings. New replay controllers use
+saved defaults without mutating an existing playback controller.
+
+[SETTINGS_CONFIGURATION.md](SETTINGS_CONFIGURATION.md) records architecture,
+version/active semantics, validation, migration and manual evidence. Build has
+0 warnings/errors and all 436 tests pass, retaining all 395 previous cases. Real
+WPF checks migrated the Stage 6 database, created both v2 profiles and verified
+active state/preferences after restart, preserved historical replay and unchanged
+82.67/90.00 v1 baselines. Stages 8/9 remain future work; DroneDiploma is unchanged.
 
 Repository: https://github.com/ferum55/FPVTrainingAssistant.git
 

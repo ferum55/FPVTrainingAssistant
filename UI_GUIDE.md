@@ -1,4 +1,4 @@
-# FPV Training Assistant — UI guide (Stages 4–6)
+# FPV Training Assistant — UI guide (Stages 4–7)
 
 ## Start the application
 
@@ -26,7 +26,7 @@ vertically; the shell and navigation remain visible.
 | Session result | Available after successful analysis; returns to the current result. Disabled before a result exists and during processing. |
 | Trajectory | Enabled after analysis with at least two telemetry samples. Opens top-down replay; also available through View trajectory on Session result. |
 | History | Enabled when local storage initializes, even without a current import. Browse operators, reopen snapshots and compare score progress. |
-| Settings | Disabled; no profile editor exists. |
+| Settings | Enabled after storage initialization, independently of a current session. Configure new profile versions and replay defaults. |
 
 The start screen explains the workflow, contract versions 1.0/1.1, supported exercises,
 and the synthetic built-in demo profiles. The picker initially opens the
@@ -55,8 +55,7 @@ through History. No session is silently overwritten on a repeated import.
 
 Trajectory navigation keeps the current session. Leaving that screen pauses
 playback. A new import replaces its path/route/time state; cancelling file selection
-does not replace the session. History is enabled when storage is ready; Settings
-remains disabled until Stage 7.
+does not replace the session. History and Settings are enabled when storage is ready.
 
 ## Built-in profiles and synthetic route
 
@@ -81,8 +80,10 @@ This is synthetic prototype data chosen for the prepared fixtures, not a real
 course or an export from DroneDiploma. Generic DefaultExerciseProfiles remain
 course-independent. The provider creates fresh configurations, assigns the explicit
 catalog identities, and never changes an imported session's IDs or version.
-Unknown IDs, other versions, and incompatible types produce a clear profile
-unavailable message. There is no fallback that scores a different course silently.
+With SQLite ready, exact stored versions, including versions created in Settings,
+are used for import. Missing IDs/versions and incompatible types produce a clear
+profile-unavailable message. There is no fallback that scores a different version
+or course silently. Built-in v1 fallback remains for non-persistent mode only.
 
 ## Validation errors, technical failures, and warnings
 
@@ -310,15 +311,48 @@ operator metadata, filters and chart. A complete shutdown/restart preserved the
 operator details and reopened result/trajectory/mock data. See
 [PERSISTENCE_HISTORY.md](PERSISTENCE_HISTORY.md) for exact schema and evidence.
 
+## Settings and profile versions (Stage 7)
+
+Open Settings without loading a session. Select a profile/version; its name, ID,
+exercise, version and active state are shown. Edit the working copy's name, type,
+criterion enabled state, weight and supported named parameters. Contributions show
+normalized enabled weights, while stored weights stay unchanged. Parameters have
+descriptive fields and default hints, without JSON or editable rule names.
+
+The Reference route table edits coordinates, point type and green/yellow radii.
+Add point, Remove point and Move Up/Down rebuild sequence order. Save validates
+weights, parameters and route geometry through the current rules and shows errors
+in-app. Save as New Version creates the next version and keeps the old one intact.
+The optional activation checkbox starts unchecked; Activate selected version can
+select a saved version separately. An incoming session still uses its explicit
+version, even if another version is active. Settings never recalculates history.
+
+Unsaved profile changes are marked. Selecting another version offers Discard and
+switch or Keep editing. Reset Changes restores the stored version without a DB
+write. Refresh/navigation preserve a dirty working copy. Profiles must be saved as
+new versions before their changes can be evaluated; no result-screen editing exists.
+
+Application / Replay offers explicit Save for default 0.5x/1x/2x speed and minimap/
+event-log visibility. These initialize new views/windows and survive restart;
+already open replay controllers retain their state. Settings automatically upgrades
+Stage 6 schema 1 storage to schema 2 without deleting history.
+
+Stage 7 verification: build 0 warnings/errors, 436/436 tests. Both v2 profile editors,
+route/parameter changes, activation, unsaved/reset protection and a complete restart
+were checked in WPF. Historical v1 scores remain 82.67/90.00; new mock/trajectory
+views used saved 2x and panel defaults. See
+[SETTINGS_CONFIGURATION.md](SETTINGS_CONFIGURATION.md) for detailed behavior and evidence.
+
 ## Current limits
 
 The current selected screen/replay position is held in memory, while saved sessions
-and operator metadata survive restart in SQLite. There is no settings/profile editor,
-automatic reanalysis, session deletion/export UI, video/3D renderer, authentication,
+and operator metadata survive restart in SQLite. There is no automatic reanalysis,
+new profile-family/criterion creation UI, session deletion/export UI, graphical
+route editor, video/3D renderer, authentication,
 real simulator-side replay implementation or exporter.
 Stage 5.5B supplies an interactive interface mock with actual recorded data; real
 DroneDiploma FPV/third-person 3D rendering remains future production work. The
 original 2D screen retains its existing presentation. Imported
-files are read without modification. Built-in profiles support only their exact
-synthetic identities and version 1. Large event/result lists have a straightforward
+files are read without modification. Built-in seed profiles remain v1; Settings adds
+stored versions of those profiles. Large event/result lists have a straightforward
 scrolling card layout rather than a dedicated high-volume event browser.

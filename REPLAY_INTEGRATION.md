@@ -143,8 +143,9 @@ dotnet run --project FPVTrainingAssistant --framework net10.0-windows
 
 Use the executable path as the value, without embedded quote characters or command
 arguments. Restart an already running assistant to inherit changed environment
-variables. This repository does not set or persist the variable. Stage 7 may
-eventually add a Settings UI.
+variables. This repository does not set or persist the variable. The Stage 7 Settings
+UI configures profile versions and mock replay preferences; executable configuration
+remains part of future external production wiring.
 
 The protocol is:
 
@@ -289,6 +290,8 @@ mock demonstrates the interface and real data workflow only. The assistant retai
 the current preview position in memory while Stage 6 retains session/profile/result
 and replay data in SQLite. Both local replay views can reopen from History. Future
 external simulator handoff may first require exporting a contract file from the
-stored data, because no original source path is retained. That export and Stage 7
-editing remain future work. Stage 6 verification is 395/395 tests and a successful
+stored data, because no original source path is retained. That export remains
+future work. Stage 7 now adds immutable profile versions and preferences for new
+local replay controllers; SETTINGS_CONFIGURATION.md records 436/436 tests and
+the full restart checks. Stage 6 verification was 395/395 tests and a successful
 full-process restart demonstration; PERSISTENCE_HISTORY.md records the details.

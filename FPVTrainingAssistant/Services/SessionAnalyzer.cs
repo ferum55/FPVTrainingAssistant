@@ -16,11 +16,16 @@ public sealed class SessionAnalyzer : ISessionAnalyzer
     }
 
     // The caller supplies an already validated session. Analysis has no IO or UI side effects.
-    public SessionAnalysisResult Analyze(TrainingSession session, ExerciseProfile profile)
+    public SessionAnalysisResult Analyze(TrainingSession session, ExerciseProfile profile) => AnalyzeCore(session,profile,requireActive:true);
+
+    // An explicit session version remains evaluable when another version becomes the preferred active one.
+    public SessionAnalysisResult AnalyzeRequestedVersion(TrainingSession session, ExerciseProfile profile) => AnalyzeCore(session,profile,requireActive:false);
+
+    private SessionAnalysisResult AnalyzeCore(TrainingSession session, ExerciseProfile profile, bool requireActive)
     {
         ArgumentNullException.ThrowIfNull(session);
         ArgumentNullException.ThrowIfNull(profile);
-        var criteria = AnalysisProfileValidator.Validate(session, profile);
+        var criteria = AnalysisProfileValidator.Validate(session, profile,requireActive);
         var metrics = CalculateMetrics(session);
         var routeRequired = criteria.Any(c => c.RuleType == RuleTypes.RouteAdherence);
         RouteAnalysisResult? route = null;

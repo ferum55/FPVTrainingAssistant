@@ -15,13 +15,17 @@ public sealed class SimulatorReplayMockViewModel : ViewModelBase, IDisposable
     private IReadOnlyList<TelemetryReadout> _telemetry = [];
     private ReplayMinimapFrame _minimapFrame = new(null, []);
 
-    public SimulatorReplayMockViewModel(TrainingSession session, ExerciseProfile profile, SessionAnalysisResult analysis)
+    public SimulatorReplayMockViewModel(TrainingSession session, ExerciseProfile profile, SessionAnalysisResult analysis, ApplicationSettings? preferences = null)
     {
         Session = session;
         var capability = new ReplayCapabilityService().Evaluate(session, null, null);
         IsAvailable = capability.CanPreviewReplay;
         UnavailableMessage = string.Join(" ", capability.PreviewLimitations);
         Playback = new(session, profile, analysis);
+        preferences ??= new ApplicationSettings();
+        Playback.PlaybackSpeed=preferences.DefaultReplaySpeed;
+        _isMinimapVisible=preferences.ShowMinimapByDefault;
+        _isEventLogVisible=preferences.ShowEventLogByDefault;
         Minimap = new(session, profile);
         _entityReplay = (session.Replay?.Entities ?? []).Select(t => new ReplayEntityService(t)).ToArray();
         Events = Array.AsReadOnly(session.Events.OrderBy(e => e.TimeSec).Select(e => new ReplayEventViewModel(e)).ToArray());

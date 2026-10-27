@@ -2,7 +2,13 @@ namespace FPVTrainingAssistant.Data;
 
 internal static class DatabaseSchema
 {
-    public const string Version = "1";
+    public const string Version = "2";
+    public const string UpgradeToVersion2 = """
+        CREATE TABLE IF NOT EXISTS app_settings(key TEXT PRIMARY KEY,value TEXT NOT NULL);
+        INSERT INTO app_settings(key,value) VALUES('default_replay_speed','1') ON CONFLICT(key) DO NOTHING;
+        INSERT INTO app_settings(key,value) VALUES('show_minimap','True') ON CONFLICT(key) DO NOTHING;
+        INSERT INTO app_settings(key,value) VALUES('show_event_log','True') ON CONFLICT(key) DO NOTHING;
+        """;
     public const string Create = """
         CREATE TABLE IF NOT EXISTS app_metadata(key TEXT PRIMARY KEY, value TEXT NOT NULL);
         CREATE TABLE IF NOT EXISTS operators(

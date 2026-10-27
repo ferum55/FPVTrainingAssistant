@@ -385,6 +385,12 @@ scores. The calculated assistant score is stored separately from any nullable
 assistant score originally supplied in JSON. SourceFilePath remains runtime-only
 and is null when reopening history. See PERSISTENCE_HISTORY.md.
 
+Stage 7 Settings creates new stored versions rather than editing an old evaluation
+configuration. IsActive is mutable version-selection metadata, not permission to
+substitute a different version into JSON. Imports resolve their exact requested
+ProfileId/ProfileVersion even if inactive. Existing snapshots are never automatically
+reanalyzed. See SETTINGS_CONFIGURATION.md for activation and working-copy rules.
+
 ## Synthetic example
 
 The following is a contract example only. It is not an export from DroneDiploma

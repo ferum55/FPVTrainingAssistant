@@ -27,9 +27,7 @@
                     <Button Content="Session result" Style="{StaticResource NavigationButton}" Command="{Binding NavigateResultCommand}" Tag="{Binding IsResultScreen}" />
                     <Button Content="Trajectory" Style="{StaticResource NavigationButton}" Command="{Binding NavigateTrajectoryCommand}" Tag="{Binding IsTrajectoryScreen}" />
                     <Button Content="History" Style="{StaticResource NavigationButton}" Command="{Binding NavigateHistoryCommand}" Tag="{Binding IsHistoryScreen}" />
-                    <Border Height="1" Background="{StaticResource BorderBrush}" Margin="12,14,12,18" />
-                    <TextBlock Text="COMING LATER" Style="{StaticResource MutedText}" FontSize="10" Margin="14,0,0,12" />
-                    <Button Content="Settings" Style="{StaticResource NavigationButton}" IsEnabled="False" ToolTipService.ShowOnDisabled="True" ToolTip="Profile configuration is not available yet." />
+                    <Button Content="Settings" Style="{StaticResource NavigationButton}" Command="{Binding NavigateSettingsCommand}" Tag="{Binding IsSettingsScreen}" />
                 </StackPanel>
             </DockPanel>
         </Border>

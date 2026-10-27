@@ -19,10 +19,11 @@ public sealed class DatabaseInitializer(DatabaseConnectionFactory connections) :
             {
                 if (!tables.Contains("app_metadata")) return new DatabaseInitializationResult(false,"History is unavailable: this database has no supported schema version.");
                 var version = Query(c,t,"SELECT value FROM app_metadata WHERE key='schema_version'",r => r.GetString(0)).SingleOrDefault();
-                if (version != DatabaseSchema.Version) return new DatabaseInitializationResult(false,"History is unavailable: unsupported database schema version. Expected version 1.");
+                if (version is not ("1" or DatabaseSchema.Version)) return new DatabaseInitializationResult(false,"History is unavailable: unsupported database schema version. Expected version 1 or 2.");
             }
             Execute(c,t,DatabaseSchema.Create);
-            Execute(c,t,"INSERT INTO app_metadata(key,value) VALUES('schema_version',$p0) ON CONFLICT(key) DO NOTHING", DatabaseSchema.Version);
+            Execute(c,t,DatabaseSchema.UpgradeToVersion2);
+            Execute(c,t,"INSERT INTO app_metadata(key,value) VALUES('schema_version',$p0) ON CONFLICT(key) DO UPDATE SET value=excluded.value", DatabaseSchema.Version);
             foreach (var p in ExerciseProfileProvider.BuiltInProfiles())
                 if (ExerciseProfileRepository.Load(c,t,p.ProfileId,p.Version) is null) ExerciseProfileRepository.Insert(c,t,p);
             t.Commit();

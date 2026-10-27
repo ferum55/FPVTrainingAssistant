@@ -49,7 +49,8 @@ imported session activates the existing window without resetting its camera,
 time or panels. Opening a different imported session closes the previous window
 and initializes a fresh one. Closing a preview while playing stops/detaches its
 DispatcherTimer, clock and ViewModel subscription; the main window remains open.
-Reopening after close starts paused at the first sample, FPV, 1x, both panels visible.
+Reopening after close starts paused at the first sample in FPV, using saved replay
+speed/panel defaults (fresh defaults: 1x, both panels visible).
 The mock has an independent playback controller and does not reset the main
 trajectory's time or alter its session. The preview is owned by the main window,
 so application shutdown also closes it.
@@ -197,4 +198,12 @@ Opening a saved 1.1 session through History reconstructs the existing preview wi
 its original JSON path, including optional telemetry, events, context and entity
 tracks. Both 2D trajectory and this mock were verified after a complete application
 shutdown/restart, with 395/395 tests passing. Source-file reconstruction for future
-external handoff and Stage 7 editing remain unimplemented. See PERSISTENCE_HISTORY.md.
+external handoff remains unimplemented. See PERSISTENCE_HISTORY.md.
+
+Stage 7 adds saved replay defaults and profile configuration. ReplayMockWindowService
+reads the current immutable preferences snapshot only when creating a new mock
+ViewModel. Re-activating an existing window preserves its controls/time/panels;
+saving preferences does not mutate a running replay. After a complete restart,
+manual verification opened an old historical session at stored 2x with both panels
+initially hidden. Profile activation did not change historical scores or geometry.
+SETTINGS_CONFIGURATION.md records versioning/migration and 436/436 tests.

@@ -4,7 +4,7 @@ using FPVTrainingAssistant.ViewModels;
 
 namespace FPVTrainingAssistant.Views;
 
-public sealed class ReplayMockWindowService : IReplayMockWindowService
+public sealed class ReplayMockWindowService(IApplicationSettingsService? preferences = null) : IReplayMockWindowService
 {
     private SimulatorReplayMockWindow? _window;
 
@@ -17,7 +17,7 @@ public sealed class ReplayMockWindowService : IReplayMockWindowService
             return;
         }
         _window?.Close();
-        var viewModel = new SimulatorReplayMockViewModel(request.Session, request.Profile, request.Analysis);
+        var viewModel = new SimulatorReplayMockViewModel(request.Session, request.Profile, request.Analysis,preferences?.Current);
         if (!viewModel.IsAvailable) { viewModel.Dispose(); throw new InvalidOperationException(viewModel.UnavailableMessage); }
         SimulatorReplayMockWindow? window = null;
         try

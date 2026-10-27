@@ -4,13 +4,13 @@ The product requirements and boundaries are recorded in [PROJECT_CONTEXT.md](PRO
 Each stage should leave a buildable application. Keep changes small, use MVVM,
 and avoid adding dependencies before they are needed.
 
-Stages 1 through 6, including Stages 5.5A/5.5B, are delivered: the scaffold, domain models, contracts,
+Stages 1 through 7, including Stages 5.5A/5.5B, are delivered: the scaffold, domain models, contracts,
 JSON import/validation, deterministic analysis, WPF review UI, top-down trajectory
 and telemetry replay, replay-capable contract 1.1, assistant-side simulator handoff,
 an interactive simulator-interface mock, synthetic examples, and focused xUnit tests.
 SQLite snapshots, operator metadata, history/reopening and native score progress
-are also delivered. Real simulator integration, configuration editing and later
-stages remain planned.
+are also delivered, along with versioned profile configuration and replay preferences.
+Real simulator integration and Stages 8/9 remain planned.
 
 ## Stage 1 - project structure and models
 
@@ -200,17 +200,33 @@ cases. Fresh storage, both contract versions, duplicates, multiple score session
 operator metadata, full process restart and both persisted replay views were
 checked in WPF. Read-only database inspection confirmed counts/foreign-key joins.
 PERSISTENCE_HISTORY.md records the schema, policies, async rationale, demonstration
-and limits. Stage 7 settings/profile editing remains unimplemented.
+and limits. Stage 7 settings/profile editing was still planned at that delivery.
 
-## Stage 7 - configuration
+## Stage 7 - configuration (delivered)
 
-- Add UI to inspect and edit exercise profiles, reference points, route zones,
-  criterion descriptions, weights, thresholds, rule types, and enabled states.
+- Add UI to inspect exercise profiles and criterion descriptions/rule types,
+  and edit working-copy names/types, reference points, route zones, weights,
+  applicable thresholds, supported parameters and enabled states.
 - Validate configuration before saving and explain invalid values.
 - Apply an explicit policy for profile revisions and historical reanalysis.
 
 Acceptance: instructors can change supported settings without editing source;
 new analyses follow valid settings and history retains understandable context.
+
+Delivered with SettingsView/SettingsViewModel, detached typed profile/criterion/
+parameter/route editors, dirty-copy reset/switch protection, transactional version
+creation/activation and replay defaults. Schema 1 automatically migrates to schema
+2 by adding app_settings, without resetting Stage 6 history. Future imports resolve
+their exact stored version; inactive explicitly requested versions remain evaluable
+without changing formulas or historical results. Existing versions are not upgraded
+silently. Application defaults initialize new trajectory/mock controllers only.
+
+Verification: 0 build warnings/errors and 436/436 tests, including all 395 previous
+cases. The real Stage 6 database migrated with history intact; WPF checks covered
+both profile families, route/criteria edits, activation, dirty-copy protection and
+full restart with saved defaults. Baseline v1 scores remain 82.67/90.00. An explicit
+temporary v2 session used its changed configuration and scored 77.58. Details are
+in SETTINGS_CONFIGURATION.md. No Stage 8/9 work is included.
 
 ## Stage 8 - sample sessions and automated tests
 

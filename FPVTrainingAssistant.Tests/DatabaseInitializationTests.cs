@@ -10,7 +10,7 @@ public sealed class DatabaseInitializationTests
         using var db = new PersistenceTestDatabase();
         await db.Initialize();
         Assert.True(File.Exists(db.DatabasePath));
-        Assert.Equal("1", db.Scalar("SELECT value FROM app_metadata WHERE key='schema_version'"));
+        Assert.Equal("2", db.Scalar("SELECT value FROM app_metadata WHERE key='schema_version'"));
         Assert.Equal(1L, db.Scalar("PRAGMA foreign_keys"));
         Assert.Equal("wal", db.Scalar("PRAGMA journal_mode"));
         foreach (var table in new[] { "operators", "training_sessions", "telemetry_samples", "session_events", "exercise_profiles", "reference_points", "evaluation_criteria", "evaluation_results", "recommendations", "detected_mistakes", "route_analysis", "replay_contexts", "replay_entity_tracks", "replay_entity_samples", "app_metadata" })

@@ -1,9 +1,16 @@
 using FPVTrainingAssistant.Models;
+using FPVTrainingAssistant.Data;
 
 namespace FPVTrainingAssistant.Services;
 
-public sealed class ExerciseProfileProvider : IExerciseProfileProvider
+public sealed class ExerciseProfileProvider(IExerciseProfileRepository? repository = null) : IExerciseProfileProvider
 {
+    public async Task<ExerciseProfile?> ResolveAsync(TrainingSession session, bool usePersistence)
+    {
+        if (!usePersistence || repository is null) return Resolve(session);
+        var profile = await repository.LoadAsync(session.ProfileId,session.ProfileVersion);
+        return profile?.ExerciseType == session.ExerciseType ? profile : null;
+    }
     public ExerciseProfile? Resolve(TrainingSession session)
     {
         ArgumentNullException.ThrowIfNull(session);

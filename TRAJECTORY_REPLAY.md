@@ -11,8 +11,9 @@ is introduced.
 After analysis with at least two telemetry samples, open Trajectory in the sidebar
 or View trajectory on Session result. Otherwise navigation is disabled. Returning
 to Session result preserves the session and pauses replay. A new import replaces
-the old scene; a successful import initializes the first recorded time, 1x speed,
-and paused state. Cancelling the picker does not replace the active session.
+the old scene; a successful import initializes the first recorded time, the saved
+default replay speed (fresh default 1x), and paused state. Cancelling the picker
+does not replace the active session.
 
 ## Components and performance
 
@@ -76,7 +77,8 @@ VisualRedRadiusM = interpolated YellowRadiusM + VisualRedMarginM
 
 Constructor options configure subdivision count, minimum margin, and margin
 factor. TrajectoryViewModel can receive a configured visual-zone service; its
-actual output determines the cached bounds. There is no settings UI yet.
+actual output determines the cached bounds. Visual subdivision/margin options
+remain code-level; Stage 7 edits profile route points/radii through versioned Settings.
 
 **Analytical Red is unbounded:** every position outside YellowRadiusM is Red.
 The finite red stroke is only a readable outside-route warning band. Space beyond
@@ -133,7 +135,7 @@ roll is rightward, and yaw rotates from +X toward +Y. The marker rotates by
 | Restart | First recorded timestamp; remains paused. |
 | Step forward/back | Pauses and selects the strictly next/previous real sample timestamp. Remains at boundaries. |
 | Timeline | Seeks to actual session-relative seconds, updates marker/state/events, and pauses. Press Play to resume. |
-| Speed | 0.5x, 1x, 2x; default 1x. Changing speed does not reset position. |
+| Speed | 0.5x, 1x, 2x; new views use the saved default (fresh default 1x). Changing speed does not reset position. |
 
 The UI clock targets about 30 Hz and advances by Stopwatch-measured elapsed time
 multiplied by speed. It assumes neither fixed timer intervals nor uniform telemetry.
@@ -238,4 +240,7 @@ in memory; imported files remain unchanged. Stage 6 now stores sessions, telemet
 versioned profiles and result/route snapshots in SQLite. History reconstructs this
 same view without rescoring or the original file. The 1.1 mock also works from saved
 data after a complete restart. See PERSISTENCE_HISTORY.md for verification and
-schema. Stage 7 editing remains unimplemented.
+schema. Stage 7 now edits profile versions and saved replay defaults; existing
+controllers retain their time/speed when defaults change. A newly constructed
+trajectory uses the saved speed. No historical route/score snapshot is recalculated.
+SETTINGS_CONFIGURATION.md records migration, exact-version behavior and 436/436 tests.

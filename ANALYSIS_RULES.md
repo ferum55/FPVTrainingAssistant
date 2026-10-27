@@ -7,6 +7,12 @@ TrainingSession and an in-memory ExerciseProfile. Call SessionValidator first
 (SessionImportService already does this on successful import). The analyzer does
 not read JSON, perform IO, invoke WPF, access SQLite, or call external services.
 
+Stage 7's import workflow calls AnalyzeRequestedVersion for the exact persisted
+ProfileId/ProfileVersion. It shares the same calculation body and validation,
+allowing a specifically requested inactive version when another version is the
+preferred active one. The original Analyze entry point retains its active-only
+guard. Activation changes selection metadata, not any formula or saved result.
+
 The returned SessionAnalysisResult contains session/profile IDs and profile version,
 FinalScore, ExerciseMetrics, criterion results, mistakes, recommendations, optional
 route metrics, and a summary. IsSuccessful means analysis completed; it does not
@@ -29,7 +35,7 @@ listed below. Result collections are returned as read-only snapshots.
 ProfileId, Version, and ExerciseType must match the session exactly, using ordinal,
 case-sensitive string comparisons. Only ObstacleCourse and TargetMission are
 analyzable. The generic importer can still accept other exercise types. Profiles
-must be active, named, and have at least one enabled criterion with unique,
+must be active for the original Analyze entry point, named, and have at least one enabled criterion with unique,
 nonblank criterion IDs. Enabled criteria require names and descriptions.
 
 All stored weights must be finite and nonnegative. **Every enabled weight must
